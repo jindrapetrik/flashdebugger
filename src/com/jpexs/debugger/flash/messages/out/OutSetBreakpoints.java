@@ -20,6 +20,7 @@ import com.jpexs.debugger.flash.DebuggerConnection;
 import com.jpexs.debugger.flash.OutDebuggerMessage;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,6 +37,15 @@ public class OutSetBreakpoints extends OutDebuggerMessage {
     @Override
     public String toString() {
         return super.toString() + "(bp.count=" + files.size() + ")";
+    }
+
+    public OutSetBreakpoints(DebuggerConnection c, int file, int line) {
+        super(c, ID);
+        this.files = new ArrayList<>();
+        this.lines = new ArrayList<>();
+
+        lines.add(line);
+        files.add(file);
     }
 
     public OutSetBreakpoints(DebuggerConnection c, List<Integer> files, List<Integer> lines) {

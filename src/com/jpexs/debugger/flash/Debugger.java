@@ -110,16 +110,16 @@ public class Debugger extends Thread {
                     moduleNames.put(sc.module, sc.name);
                 }
                 con.getMessage(InAskBreakpoints.class);
-                dc.addBreakPoint(13, 15);
+                /*dc.addBreakPoint(13, 15);
 
-                con.addMessageListener(new DebugMessageListener<InBreakAt>() {
+                 con.addMessageListener(new DebugMessageListener<InBreakAt>() {
 
-                    @Override
-                    public void message(InBreakAt message) {
-                        Logger.getLogger(Debugger.class.getName()).log(Level.INFO, "break " + message.file + ":" + message.line);
-                        dc.sendContinue();
-                    }
-                });
+                 @Override
+                 public void message(InBreakAt message) {
+                 Logger.getLogger(Debugger.class.getName()).log(Level.INFO, "break " + message.file + ":" + message.line);
+                 dc.sendContinue();
+                 }
+                 });*/
                 dc.sendContinue();
 
             }

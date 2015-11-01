@@ -244,7 +244,7 @@ public class DebuggerCommands {
 
     public boolean addWatch(long varId, String varName, int flags, int tag) {
         try {
-            InWatch2 iw2 = connection.sendMessage(new OutAddWatch2(connection, varId, null, flags, tag), InWatch2.class);
+            InWatch2 iw2 = connection.sendMessage(new OutAddWatch2(connection, varId, varName, flags, tag), InWatch2.class);
             return iw2.success == 1;
         } catch (IOException ex) {
             Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);

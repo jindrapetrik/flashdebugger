@@ -93,34 +93,39 @@ public class Debugger extends Thread {
             public void connected(DebuggerConnection con) {
 
                 DebuggerCommands dc = new DebuggerCommands(con);
-                dc.stopWarning();
-                dc.setStopOnFault();
-                dc.setEnumerateOverride();
-                dc.setNotifyFailure();
-                dc.setInvokeSetters();
-                dc.setSwfLoadNotify();
-                dc.setGetterTimeout(1500);
-                dc.setSetterTimeout(5000);
-                dc.squelch(true);
-                List<SwfInfo> swfs = dc.getSwfInfo(1);
-                int numScript = con.getMessage(InNumScript.class).num;
-                Map<Integer, String> moduleNames = new HashMap<>();
-                for (int i = 0; i < numScript; i++) {
-                    InScript sc = con.getMessage(InScript.class);
-                    moduleNames.put(sc.module, sc.name);
+                try {
+                    dc.stopWarning();
+                    dc.setStopOnFault();
+                    dc.setEnumerateOverride();
+                    dc.setNotifyFailure();
+                    dc.setInvokeSetters();
+                    dc.setSwfLoadNotify();
+                    dc.setGetterTimeout(1500);
+                    dc.setSetterTimeout(5000);
+                    dc.squelch(true);
+                    List<SwfInfo> swfs = dc.getSwfInfo(1);
+                    int numScript = con.getMessage(InNumScript.class).num;
+                    Map<Integer, String> moduleNames = new HashMap<>();
+                    for (int i = 0; i < numScript; i++) {
+                        InScript sc = con.getMessage(InScript.class);
+                        moduleNames.put(sc.module, sc.name);
+                    }
+                    con.getMessage(InAskBreakpoints.class);
+                    /*dc.addBreakPoint(13, 15);
+
+                     con.addMessageListener(new DebugMessageListener<InBreakAt>() {
+
+                     @Override
+                     public void message(InBreakAt message) {
+                     Logger.getLogger(Debugger.class.getName()).log(Level.INFO, "break " + message.file + ":" + message.line);
+                     dc.sendContinue();
+                     }
+                     });*/
+                    dc.sendContinue();
+                } catch (IOException ex) {
+                    //error:-(
+                    System.err.println("FAILED to communicate");
                 }
-                con.getMessage(InAskBreakpoints.class);
-                /*dc.addBreakPoint(13, 15);
-
-                 con.addMessageListener(new DebugMessageListener<InBreakAt>() {
-
-                 @Override
-                 public void message(InBreakAt message) {
-                 Logger.getLogger(Debugger.class.getName()).log(Level.INFO, "break " + message.file + ":" + message.line);
-                 dc.sendContinue();
-                 }
-                 });*/
-                dc.sendContinue();
 
             }
         });

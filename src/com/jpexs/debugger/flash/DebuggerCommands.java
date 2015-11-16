@@ -23,6 +23,7 @@ import com.jpexs.debugger.flash.messages.in.InGetActions;
 import com.jpexs.debugger.flash.messages.in.InGetFncNames;
 import com.jpexs.debugger.flash.messages.in.InGetVariable;
 import com.jpexs.debugger.flash.messages.in.InOption;
+import com.jpexs.debugger.flash.messages.in.InRemoveBreakpoint;
 import com.jpexs.debugger.flash.messages.in.InSetBreakpoint;
 import com.jpexs.debugger.flash.messages.in.InSetVariable;
 import com.jpexs.debugger.flash.messages.in.InSetVariable2;
@@ -69,104 +70,67 @@ public class DebuggerCommands {
         this.connection = connection;
     }
 
-    public void stepInto() {
-        try {
-            connection.sendMessage(new OutStepInto(connection), InContinue.class);
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public void disconnect() {
+        connection.disconnect();
     }
 
-    public void stepOut() {
-        try {
-            connection.sendMessage(new OutStepOut(connection), InContinue.class);
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public void stepInto() throws IOException {
+        connection.sendMessage(new OutStepInto(connection), InContinue.class);
     }
 
-    public void stepOver() {
-        try {
-            connection.sendMessage(new OutStepOver(connection), InContinue.class);
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public void stepOut() throws IOException {
+        connection.sendMessage(new OutStepOut(connection), InContinue.class);
+
     }
 
-    public void stepContinue() {
-        try {
-            connection.sendMessage(new OutStepContinue(connection), InContinue.class);
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public void stepOver() throws IOException {
+        connection.sendMessage(new OutStepOver(connection), InContinue.class);
     }
 
-    public List<InGetFncNames.FunctionName> getFunctionNames(int file, int line) {
+    public void stepContinue() throws IOException {
+        connection.sendMessage(new OutStepContinue(connection), InContinue.class);
+
+    }
+
+    public List<InGetFncNames.FunctionName> getFunctionNames(int file, int line) throws IOException {
         if (connection.playerVersion >= 9) {
-            try {
-                InGetFncNames ifn = connection.sendMessage(new OutGetFncNames(connection, file, line), InGetFncNames.class);
-                return ifn.names; //how about module?
-            } catch (IOException ex) {
-                Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            InGetFncNames ifn = connection.sendMessage(new OutGetFncNames(connection, file, line), InGetFncNames.class);
+            return ifn.names; //how about module?
         }
         return null;
     }
 
-    public void removeBreakPoint(int file, int line) {
-        try {
-            connection.writeMessage(new OutRemoveBreakpoints(connection, file, line));
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public boolean removeBreakPoint(int file, int line) throws IOException {
+        connection.writeMessage(new OutRemoveBreakpoints(connection, file, line));
+        return true;//?
     }
 
-    public byte[] getActions(int module, int offset, int length) {
-        try {
-            InGetActions iga = connection.sendMessage(new OutGetActions(connection, module, offset, length), InGetActions.class);
-            return iga.actionData; //TODO: offset?
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }
+    public byte[] getActions(int module, int offset, int length) throws IOException {
+        InGetActions iga = connection.sendMessage(new OutGetActions(connection, module, offset, length), InGetActions.class);
+        return iga.actionData; //TODO: offset?
     }
 
-    public List<InSwfInfo.SwfInfo> getSwfInfo(int module) {
-        try {
-            InSwfInfo isi = connection.sendMessage(new OutSwfInfo(connection, module), InSwfInfo.class);
-            return isi.swfInfos;
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return new ArrayList<>();
+    public List<InSwfInfo.SwfInfo> getSwfInfo(int module) throws IOException {
+        InSwfInfo isi = connection.sendMessage(new OutSwfInfo(connection, module), InSwfInfo.class);
+        return isi.swfInfos;
+
     }
 
-    public void exit(boolean requestTerminate) {
-        try {
-            connection.writeMessage(new OutExit(connection, requestTerminate));
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public void exit(boolean requestTerminate) throws IOException {
+        connection.writeMessage(new OutExit(connection, requestTerminate));
+
     }
 
-    public void sendContinue() {
-        try {
-            connection.sendMessageIgnoreResult(new OutContinue(connection), InContinue.class);
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public void sendContinue() throws IOException {
+        connection.sendMessageIgnoreResult(new OutContinue(connection), InContinue.class);
+
     }
 
-    public InSetBreakpoint addBreakPoints(List<Integer> files, List<Integer> lines) {
-        try {
-            return connection.sendMessage(new OutSetBreakpoints(connection, files, lines), InSetBreakpoint.class);
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }
+    public InSetBreakpoint addBreakPoints(List<Integer> files, List<Integer> lines) throws IOException {
+        return connection.sendMessage(new OutSetBreakpoints(connection, files, lines), InSetBreakpoint.class);
     }
 
-    public boolean addBreakPoint(int file, int line) {
+    public boolean addBreakPoint(int file, int line) throws IOException {
         List<Integer> files = new ArrayList<>();
         List<Integer> lines = new ArrayList<>();
 
@@ -182,29 +146,18 @@ public class DebuggerCommands {
         return false;
     }
 
-    public InFrame getFrame(int depth) {
+    public InFrame getFrame(int depth) throws IOException {
         if (!connection.squelchEnabled) {
             return null;
         }
-        try {
-            return connection.sendMessage(new OutGetFrame(connection, depth), InFrame.class);
-
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
+        return connection.sendMessage(new OutGetFrame(connection, depth), InFrame.class);
     }
 
-    public InCallFunction callFunction(boolean isConstructor, String funcName, String thisType, String thisValue, List<String> argTypes, List<String> argValues) {
-        try {
-            return connection.sendMessage(new OutCallFunction(connection, isConstructor, funcName, thisType, thisValue, argTypes, argValues), InCallFunction.class);
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
+    public InCallFunction callFunction(boolean isConstructor, String funcName, String thisType, String thisValue, List<String> argTypes, List<String> argValues) throws IOException {
+        return connection.sendMessage(new OutCallFunction(connection, isConstructor, funcName, thisType, thisValue, argTypes, argValues), InCallFunction.class);
     }
 
-    public InGetVariable getVariable(long id, String name, boolean fireGetter, boolean getChildrenToo) {
+    public InGetVariable getVariable(long id, String name, boolean fireGetter, boolean getChildrenToo) throws IOException {
         int flags = GetVariableFlag.DONT_GET_FUNCTIONS;
         if (fireGetter) {
             flags |= GetVariableFlag.INVOKE_GETTER;
@@ -212,155 +165,129 @@ public class DebuggerCommands {
         if (getChildrenToo) {
             flags |= GetVariableFlag.ALSO_GET_CHILDREN | GetVariableFlag.GET_CLASS_HIERARCHY;
         }
-        try {
-            return connection.sendMessage(
-                    fireGetter ? new OutGetVariableWhichInvokesGetter(connection, id, name, flags) : new OutGetVariable(connection, id, name, flags), InGetVariable.class);
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
+        return connection.sendMessage(
+                fireGetter ? new OutGetVariableWhichInvokesGetter(connection, id, name, flags) : new OutGetVariable(connection, id, name, flags), InGetVariable.class);
+
     }
 
-    public void setVariable(long id, String name, int type, String value) {
+    public void setVariable(long id, String name, int type, String value) throws IOException {
         squelch(false);
         OutSetVariable osv = new OutSetVariable(connection, id, name, Variable.typeNameFor(type), value);
-        try {
-            if (type == VariableType.STRING) {
-                InSetVariable isv = connection.sendMessage(osv, InSetVariable.class);
-            } else {
-                InSetVariable2 isv = connection.sendMessage(osv, InSetVariable2.class);
-            }
-            //TODO: handle two results?
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
+        if (type == VariableType.STRING) {
+            InSetVariable isv = connection.sendMessage(osv, InSetVariable.class);
+        } else {
+            InSetVariable2 isv = connection.sendMessage(osv, InSetVariable2.class);
         }
+        //TODO: handle two results?
+
         squelch(true);
 
     }
 
-    public boolean squelch(boolean on) {
-        try {
-            InSquelch isq = connection.sendMessage(new OutSetSquelch(connection, on), InSquelch.class);
-            return isq.state;
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return false;//??
+    public boolean squelch(boolean on) throws IOException {
+        InSquelch isq = connection.sendMessage(new OutSetSquelch(connection, on), InSquelch.class);
+        return isq.state;
+
     }
 
-    public boolean addWatch(long varId, String varName, int flags, int tag) {
-        try {
-            InWatch2 iw2 = connection.sendMessage(new OutAddWatch2(connection, varId, varName, flags, tag), InWatch2.class);
-            return iw2.success == 1;
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return false;
+    public boolean addWatch(long varId, String varName, int flags, int tag) throws IOException {
+        InWatch2 iw2 = connection.sendMessage(new OutAddWatch2(connection, varId, varName, flags, tag), InWatch2.class);
+
+        return iw2.success == 1;
+
     }
 
-    public boolean removeWatch(long varId, String memberName) {
-        try {
-            InWatch2 iw2 = connection.sendMessage(new OutRemoveWatch2(connection, varId, memberName), InWatch2.class);
-            return iw2.success == 1;
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return false;
+    public boolean removeWatch(long varId, String memberName) throws IOException {
+        InWatch2 iw2 = connection.sendMessage(new OutRemoveWatch2(connection, varId, memberName), InWatch2.class);
+        return iw2.success == 1;
+
     }
 
-    public void setActiveIsolate(long isolate) {
-        try {
-            connection.writeMessage(new OutSetActiveIsolate(connection, isolate));
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public void setActiveIsolate(long isolate) throws IOException {
+        connection.writeMessage(new OutSetActiveIsolate(connection, isolate));
     }
 
-    public void setOption(String name, String value) {
-        try {
-            InOption io = connection.sendMessage(new OutSetOption(connection, name, value), InOption.class);
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public void setOption(String name, String value) throws IOException {
+
+        InOption io = connection.sendMessage(new OutSetOption(connection, name, value), InOption.class);
     }
 
-    public String getOption(String name, String defaultValue) {
-        String v = defaultValue;
-        try {
-            InOption io = connection.sendMessage(new OutGetOption(connection, name), InOption.class);
-            v = io.v;
-        } catch (IOException ex) {
-            Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
+    public String getOption(String name, String defaultValue) throws IOException {
+        InOption io = connection.sendMessage(new OutGetOption(connection, name), InOption.class);
+        String v = io.v;
+
+        if (v.isEmpty()) {
+            return defaultValue;
         }
         return v;
     }
 
-    public void debuggerSetWideLine() {
+    public void debuggerSetWideLine() throws IOException {
         setOption("wide_line_debugger", "on");
     }
 
-    public boolean playerIsWideLine() {
+    public boolean playerIsWideLine() throws IOException {
         return getOption("wide_line_player", "off").equals("on");
     }
 
-    public boolean playerCanCallFunctions() {
+    public boolean playerCanCallFunctions() throws IOException {
         return getOption("can_call_functions", "off").equals("on");
     }
 
-    public boolean playerConcurrency() {
+    public boolean playerConcurrency() throws IOException {
         return getOption("concurrent_player", "off").equals("on");
     }
 
-    public boolean playerCanBreakOnAllExceptions() {
+    public boolean playerCanBreakOnAllExceptions() throws IOException {
         return getOption("can_break_on_all_exceptions", "off").equals("on");
     }
 
-    public boolean playerCanTerminate() {
+    public boolean playerCanTerminate() throws IOException {
         return getOption("can_terminate", "off").equals("on");
     }
 
-    public boolean playerSupportsWatchpoints() {
+    public boolean playerSupportsWatchpoints() throws IOException {
         return getOption("can_set_watchpoints", "off").equals("on");
     }
 
-    public void stopWarning() {
+    public void stopWarning() throws IOException {
         setOption("disable_script_stuck_dialog", "on"); //AS2
         setOption("disable_script_stuck", "on"); //hack for AS3
     }
 
-    public void setOption(String name, boolean val) {
+    public void setOption(String name, boolean val) throws IOException {
         setOption(name, val ? "on" : "off");
     }
 
-    public void setStopOnFault() {
+    public void setStopOnFault() throws IOException {
         setOption("break_on_fault", true);
     }
 
-    public void setEnumerateOverride() {
+    public void setEnumerateOverride() throws IOException {
         setOption("enumerate_override", true);
     }
 
-    public void setNotifyFailure() {
+    public void setNotifyFailure() throws IOException {
         setOption("notify_on_failure", true);
     }
 
-    public void setInvokeSetters() {
+    public void setInvokeSetters() throws IOException {
         setOption("invoke_setters", true);
     }
 
-    public void setSwfLoadNotify() {
+    public void setSwfLoadNotify() throws IOException {
         setOption("swf_load_messages", true);
     }
 
-    public void consoleErrorsAsTrace(boolean on) {
+    public void consoleErrorsAsTrace(boolean on) throws IOException {
         setOption("console_errors", on);
     }
 
-    public void setGetterTimeout(int timeout) {
+    public void setGetterTimeout(int timeout) throws IOException {
         setOption("getter_timeout", "" + timeout);
     }
 
-    public void setSetterTimeout(int timeout) {
+    public void setSetterTimeout(int timeout) throws IOException {
         setOption("setter_timeout", "" + timeout);
     }
 

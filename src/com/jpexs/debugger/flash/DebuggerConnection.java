@@ -16,6 +16,7 @@
  */
 package com.jpexs.debugger.flash;
 
+import com.jpexs.debugger.flash.messages.in.InExit;
 import com.jpexs.debugger.flash.messages.in.InProcessTag;
 import com.jpexs.debugger.flash.messages.out.OutProcessedTag;
 import com.jpexs.debugger.flash.messages.out.OutSetActiveIsolate;
@@ -43,6 +44,7 @@ public class DebuggerConnection extends Thread {
     private final InputStream is;
     private final OutputStream os;
     private final Socket s;
+    private boolean isClosed = false;
 
     private static final String DEBUG_MESSAGES = "$debug_messages";
     private static final String DEBUG_MESSAGE_SIZE = "$debug_message_size";
@@ -66,6 +68,30 @@ public class DebuggerConnection extends Thread {
     public static final int DEFAULT_ISOLATE_ID = 1;
 
     public int activeIsolateId = -1;
+
+    public void disconnect() {
+        if (is != null) {
+            try {
+                is.close();
+            } catch (IOException ex) {
+                //ignore;
+            }
+        }
+        if (os != null) {
+            try {
+                os.close();
+            } catch (IOException ex) {
+                //ignore
+            }
+        }
+        if (s != null) {
+            try {
+                s.close();
+            } catch (IOException ex) {
+                //ignore
+            }
+        }
+    }
 
     public void addMessageListener(DebugMessageListener l) {
         synchronized (listenersLock) {
@@ -95,6 +121,7 @@ public class DebuggerConnection extends Thread {
                 try {
                     writeMessage(new OutProcessedTag(DebuggerConnection.this));
                 } catch (IOException ex) {
+                    disconnect();
                     //ignore
                 }
             }
@@ -173,7 +200,7 @@ public class DebuggerConnection extends Thread {
     }
 
     @SuppressWarnings("unchecked")
-    public <E extends InDebuggerMessage> E getMessage(Class<E> msgType) {
+    public <E extends InDebuggerMessage> E getMessage(Class<E> msgType) throws IOException {
         synchronized (receivedLock) {
             while (true) {
                 loopi:
@@ -195,8 +222,15 @@ public class DebuggerConnection extends Thread {
                 }
                 try {
                     receivedLock.wait();
+                    boolean cls;
+                    synchronized (this) {
+                        cls = isClosed;
+                    }
+                    if (cls) {
+                        throw new IOException("Disconnected");
+                    }
                 } catch (InterruptedException ex) {
-                    return null;
+                    throw new IOException("Disconnected");
                 }
             }
         }
@@ -207,19 +241,32 @@ public class DebuggerConnection extends Thread {
         while (!isInterrupted()) {
             try {
                 InDebuggerMessage msg = readMessage();
+                if (msg instanceof InExit) {
+                    synchronized (this) {
+                        isClosed = true;
+                        disconnect();
+                        break;
+                    }
+                }
                 Logger.getLogger(Debugger.class.getName()).log(Level.FINER, "Received: {0}", msg);
                 synchronized (listenersLock) {
                     for (DebugMessageListener listener : messageListeners) {
                         handle(listener, msg);
                     }
                 }
+
                 msg.exec();
+
                 synchronized (receivedLock) {
                     received.add(msg);
                     receivedLock.notifyAll();
                 }
             } catch (IOException ex) {
-                Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINE, "Disconnected");
+                synchronized (this) {
+                    isClosed = true;
+                }
+                received.clear();
+                disconnect();
                 break;
             }
         }
@@ -246,8 +293,10 @@ public class DebuggerConnection extends Thread {
      * @param v
      * @throws IOException
      */
-    public synchronized void writeMessage(OutDebuggerMessage v) throws IOException {
-        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "Sending: {0}", v);
+    public synchronized
+            void writeMessage(OutDebuggerMessage v) throws IOException {
+        Logger.getLogger(DebuggerConnection.class
+                .getName()).log(Level.FINER, "Sending: {0}", v);
         if (v.type != OutSetActiveIsolate.ID) {
             int targetIsolate = v.targetIsolate;
             if (targetIsolate != activeIsolateId) {
@@ -258,11 +307,15 @@ public class DebuggerConnection extends Thread {
         byte[] data = v.getData();
 
         writeDword(data.length);
+
         writeDword(v.type);
+
         os.write(data);
+
         os.flush();
 
-        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINEST, "Sent: {0}", v);
+        Logger.getLogger(DebuggerConnection.class
+                .getName()).log(Level.FINEST, "Sent: {0}", v);
     }
 
     /**

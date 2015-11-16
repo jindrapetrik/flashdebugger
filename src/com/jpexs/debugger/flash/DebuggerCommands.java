@@ -157,23 +157,29 @@ public class DebuggerCommands {
         }
     }
 
-    public boolean addBreakPoint(int file, int line) {
+    public InSetBreakpoint addBreakPoints(List<Integer> files, List<Integer> lines) {
         try {
-            List<Integer> files = new ArrayList<>();
-            files.add(file);
-            List<Integer> lines = new ArrayList<>();
-            lines.add(line);
-            InSetBreakpoint bp = connection.sendMessage(new OutSetBreakpoints(connection, files, lines), InSetBreakpoint.class);
-            for (int i = 0; i < bp.lines.size(); i++) {
-                if (bp.files.get(i) == file && bp.lines.get(i) == line) {
-                    return true;
-                }
-            }
-            return false;
+            return connection.sendMessage(new OutSetBreakpoints(connection, files, lines), InSetBreakpoint.class);
         } catch (IOException ex) {
             Logger.getLogger(DebuggerCommands.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+            return null;
         }
+    }
+
+    public boolean addBreakPoint(int file, int line) {
+        List<Integer> files = new ArrayList<>();
+        List<Integer> lines = new ArrayList<>();
+
+        files.add(file);
+        lines.add(line);
+
+        InSetBreakpoint bp = addBreakPoints(files, lines);
+        for (int i = 0; i < bp.lines.size(); i++) {
+            if (bp.files.get(i) == file && bp.lines.get(i) == line) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public InFrame getFrame(int depth) {

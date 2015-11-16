@@ -60,6 +60,7 @@ public class DebuggerConnection extends Thread {
     public Map<String, String> options = new HashMap<>();
     public boolean wideLines = false;
 
+    private final Object listenersLock = new Object();
     protected List<DebugMessageListener> messageListeners = new ArrayList<>();
 
     public static final int DEFAULT_ISOLATE_ID = 1;
@@ -67,11 +68,15 @@ public class DebuggerConnection extends Thread {
     public int activeIsolateId = -1;
 
     public void addMessageListener(DebugMessageListener l) {
-        messageListeners.add(l);
+        synchronized (listenersLock) {
+            messageListeners.add(l);
+        }
     }
 
     public void removeMessageListener(DebugMessageListener l) {
-        messageListeners.remove(l);
+        synchronized (listenersLock) {
+            messageListeners.remove(l);
+        }
     }
 
     final DebuggerCommands dc;
@@ -97,17 +102,13 @@ public class DebuggerConnection extends Thread {
     }
 
     @SuppressWarnings("unchecked")
-    private boolean handle(DebugMessageListener<? extends InDebuggerMessage> l, InDebuggerMessage msg) {
+    private boolean handle(DebugMessageListener<InDebuggerMessage> l, InDebuggerMessage msg) {
         Class actualType = (Class) ((ParameterizedType) l.getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
         boolean canHandle = (actualType.isAssignableFrom(msg.getClass()));
         if (!canHandle) {
             return false;
         }
-        try {
-            l.getClass().getMethod("message", InDebuggerMessage.class).invoke(l, msg);
-        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(DebuggerConnection.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        l.message(msg);
         return true;
     }
 
@@ -207,8 +208,10 @@ public class DebuggerConnection extends Thread {
             try {
                 InDebuggerMessage msg = readMessage();
                 Logger.getLogger(Debugger.class.getName()).log(Level.FINER, "Received: {0}", msg);
-                for (DebugMessageListener listener : messageListeners) {
-                    handle(listener, msg);
+                synchronized (listenersLock) {
+                    for (DebugMessageListener listener : messageListeners) {
+                        handle(listener, msg);
+                    }
                 }
                 msg.exec();
                 synchronized (receivedLock) {

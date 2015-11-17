@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.in;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -34,6 +35,7 @@ public class InBreakAtExt extends InDebuggerMessage {
 
     public List<Integer> files;
     public List<Integer> lines;
+    public List<Long> ids;
     public List<String> stacks;
 
     @Override
@@ -54,6 +56,7 @@ public class InBreakAtExt extends InDebuggerMessage {
         long num = readDWord();
         files = new ArrayList<>();
         lines = new ArrayList<>();
+        ids = new ArrayList<>();
         stacks = new ArrayList<>();
         for (long i = 0; i < num; i++) {
             int file_i;
@@ -66,9 +69,11 @@ public class InBreakAtExt extends InDebuggerMessage {
                 file_i = (int) readDWord();
                 line_i = (int) readDWord();
             }
+            long id = readPtr(c);
             String stack = readString();
             files.add(file_i);
             lines.add(line_i);
+            ids.add(id);
             stacks.add(stack);
         }
     }

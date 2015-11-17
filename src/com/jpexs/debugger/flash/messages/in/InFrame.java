@@ -33,6 +33,8 @@ public class InFrame extends InDebuggerMessage {
     public int depth;
     public List<Variable> registers;
     public List<Variable> variables;
+    public List<Variable> arguments;
+    public List<Variable> scopeChain;
     public List<Long> variableIds;
     public long frameId = -1;
     public Variable frame;
@@ -62,15 +64,19 @@ public class InFrame extends InDebuggerMessage {
         }
         variables = new ArrayList<>();
         variableIds = new ArrayList<>();
+        arguments = new ArrayList<>();
+        scopeChain = new ArrayList<>();
         while (available() > 0) {
             variableIds.add(readPtr(c));
             Variable child = readVariable(c);
             if (currentArg == -1 && child.name.equals(ARGUMENTS_MARKER)) {
                 currentArg = 0;
                 gettingScopeChain = false;
+                continue;
             } else if (child.name.equals(SCOPE_CHAIN_MARKER)) {
                 currentArg = -1;
                 gettingScopeChain = true;
+                continue;
             } else if (currentArg >= 0) {
                 currentArg++;
                 if (child.name.equals("undefined")) {
@@ -78,11 +84,13 @@ public class InFrame extends InDebuggerMessage {
                 }
             }
 
-            if (!gettingScopeChain) {
-                //addvariablemember...
+            if (gettingScopeChain) {
+                scopeChain.add(child);
+            } else if (currentArg >= 0) {
+                arguments.add(child);
+            } else {
+                variables.add(child);
             }
-            variables.add(child);
-
         }
     }
 

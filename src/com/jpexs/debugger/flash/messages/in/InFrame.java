@@ -33,7 +33,9 @@ public class InFrame extends InDebuggerMessage {
     public int depth;
     public List<Variable> registers;
     public List<Variable> variables;
+    public List<Long> variableIds;
     public long frameId = -1;
+    public Variable frame;
 
     @Override
     public String toString() {
@@ -56,10 +58,12 @@ public class InFrame extends InDebuggerMessage {
         boolean gettingScopeChain = false;
         if (available() > 0) {
             frameId = readPtr(c);
-            readVariable(c);
+            frame = readVariable(c);
         }
         variables = new ArrayList<>();
+        variableIds = new ArrayList<>();
         while (available() > 0) {
+            variableIds.add(readPtr(c));
             Variable child = readVariable(c);
             if (currentArg == -1 && child.name.equals(ARGUMENTS_MARKER)) {
                 currentArg = 0;
@@ -78,6 +82,7 @@ public class InFrame extends InDebuggerMessage {
                 //addvariablemember...
             }
             variables.add(child);
+
         }
     }
 

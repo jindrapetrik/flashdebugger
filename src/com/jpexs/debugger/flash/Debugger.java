@@ -18,6 +18,7 @@ package com.jpexs.debugger.flash;
 
 import com.jpexs.debugger.flash.messages.in.InAskBreakpoints;
 import com.jpexs.debugger.flash.messages.in.InBreakAt;
+import com.jpexs.debugger.flash.messages.in.InFrame;
 import com.jpexs.debugger.flash.messages.in.InNumScript;
 import com.jpexs.debugger.flash.messages.in.InScript;
 import com.jpexs.debugger.flash.messages.in.InSwfInfo.SwfInfo;
@@ -121,7 +122,9 @@ public class Debugger extends Thread {
                      dc.sendContinue();
                      }
                      });*/
-                    dc.sendContinue();
+                    InFrame f = dc.getFrame(0);
+                    System.out.println("" + f);
+                    //dc.sendContinue();
                 } catch (IOException ex) {
                     //error:-(
                     System.err.println("FAILED to communicate");

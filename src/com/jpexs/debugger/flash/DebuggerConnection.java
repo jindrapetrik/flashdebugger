@@ -248,7 +248,7 @@ public class DebuggerConnection extends Thread {
                         break;
                     }
                 }
-                Logger.getLogger(Debugger.class.getName()).log(Level.FINER, "Received: {0}", msg);
+                Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "Received: {0}", msg);
                 synchronized (listenersLock) {
                     for (DebugMessageListener listener : messageListeners) {
                         handle(listener, msg);
@@ -293,18 +293,19 @@ public class DebuggerConnection extends Thread {
      * @param v
      * @throws IOException
      */
-    public synchronized
-            void writeMessage(OutDebuggerMessage v) throws IOException {
-        Logger.getLogger(DebuggerConnection.class
-                .getName()).log(Level.FINER, "Sending: {0}", v);
+    public synchronized void writeMessage(OutDebuggerMessage v) throws IOException {
+        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "Sending: {0}", v);
         if (v.type != OutSetActiveIsolate.ID) {
             int targetIsolate = v.targetIsolate;
             if (targetIsolate != activeIsolateId) {
                 activeIsolateId = targetIsolate;
+                Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "Isolate do not match, switching isolate");
                 writeMessage(new OutSetActiveIsolate(this, targetIsolate));
             }
         }
         byte[] data = v.getData();
+
+        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINEST, "Writing data");
 
         writeDword(data.length);
 
@@ -314,8 +315,7 @@ public class DebuggerConnection extends Thread {
 
         os.flush();
 
-        Logger.getLogger(DebuggerConnection.class
-                .getName()).log(Level.FINEST, "Sent: {0}", v);
+        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINEST, "Sent: {0}", v);
     }
 
     /**

@@ -31,7 +31,22 @@ public class Variable {
 
     @Override
     public String toString() {
-        return "var(name=" + name + ", type=" + typeNameFor(vType) + ")";
+        return "var(name=" + name + ", type=" + getTypeAsStr() + "), value=" + getValueAsStr();
+    }
+
+    public String getTypeAsStr() {
+        return typeNameFor(vType);
+    }
+
+    public String getValueAsStr() {
+        switch (vType) {
+            case VariableType.OBJECT:
+            case VariableType.MOVIECLIP:
+            case VariableType.FUNCTION:
+                return getTypeAsStr() + "(" + value + ")";
+            default:
+                return "" + value;
+        }
     }
 
     public Variable(String name, int vType, Object value, String typeName, String className, boolean isPrimitive) {
@@ -44,42 +59,32 @@ public class Variable {
     }
 
     public static String typeNameFor(int type) {
-        String s = "string";
         switch (type) {
             case VariableType.NUMBER:
-                s = "number";
-                break;
+                return "number";
 
             case VariableType.BOOLEAN:
-                s = "boolean";
-                break;
+                return "boolean";
 
             case VariableType.STRING:
-                s = "string";
-                break;
+                return "String";
 
             case VariableType.OBJECT:
-                s = "object";
-                break;
+                return "Object";
 
             case VariableType.FUNCTION:
-                s = "function";
-                break;
+                return "Function";
 
             case VariableType.MOVIECLIP:
-                s = "movieclip";
-                break;
+                return "MovieClip";
 
             case VariableType.NULL:
-                s = "null";
-                break;
+                return "null";
 
             case VariableType.UNDEFINED:
             case VariableType.UNKNOWN:
             default:
-                s = "undefined";
-                break;
+                return "undefined";
         }
-        return s;
     }
 }

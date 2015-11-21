@@ -33,11 +33,16 @@ import javax.xml.bind.DatatypeConverter;
  */
 public class SWD {
 
-    public static final int bitmapMainMxmlFile = 1; //Main MXML file for application
-    public static final int bitmapOtherFile = 2; //Other file, presumably an MXML or AS file
-    public static final int bitmapFrameworkFile = 3; //Framework file
-    public static final int bitmapOtherSyntheticFiles = 4;//Other per-component synthetic files produced by MXML compiler
-    public static final int bitmapActions = 5; //Actions
+    /*public static final int bitmapMainMxmlFile = 1; //Main MXML file for application
+     public static final int bitmapOtherFile = 2; //Other file, presumably an MXML or AS file
+     public static final int bitmapFrameworkFile = 3; //Framework file
+     public static final int bitmapOtherSyntheticFiles = 4;//Other per-component synthetic files produced by MXML compiler
+     public static final int bitmapActions = 5; //Actions
+     */
+    //These seems to bu used by AS1/2 compiler
+    public static final int bitmapAction = 1;
+    public static final int bitmapOnAction = 2;
+    public static final int bitmapOnClipAction = 3;
 
     private static final String SYNTHETIC = "synthetic: ";
     private static final String SYNTHETIC_OBJ = "synthetic: Object.registerClass() for ";
@@ -60,7 +65,7 @@ public class SWD {
         public byte[] getBytes() {
             try {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                baos.write(tagId);
+                writeUI32(baos, tagId);
                 writeTo(baos);
                 return baos.toByteArray();
             } catch (IOException ex) {
@@ -208,13 +213,14 @@ public class SWD {
 
     public static class DebugBreakpoint extends DebugItem {
 
-        public int bp;
+        public int module;
+        public int line;
 
         public static final int ID = 2;
 
         @Override
         public String toString() {
-            return "DebugBreakpoint[" + bp + "]";
+            return "DebugBreakpoint[module=" + module + ", line=" + line + "]";
         }
 
         public DebugBreakpoint() {
@@ -224,18 +230,21 @@ public class SWD {
 
         public DebugBreakpoint(InputStream is) throws IOException {
             super(ID);
-
-            bp = readUI32(is);
+            int bp = readUI32(is);
+            module = bp & 0xffff;
+            line = (bp >> 16) & 0xffff;
         }
 
-        public DebugBreakpoint(int bp) {
+        public DebugBreakpoint(int module, int line) {
             super(ID);
 
-            this.bp = bp;
+            this.module = module;
+            this.line = line;
         }
 
         @Override
         protected void writeTo(OutputStream os) throws IOException {
+            long bp = ((line << 16) & 0xffff0000) | (module);
             writeUI32(os, bp);
         }
 
@@ -295,22 +304,22 @@ public class SWD {
         }
         return name;
     }
-
-    public static int getBitmap(String name, String mainDebugScriptName) {
-        if (isFrameworkClass(name)) {
-            return bitmapFrameworkFile;
-        }
-        if (name.startsWith(SYNTHETIC)) {
-            return bitmapOtherSyntheticFiles;
-        }
-        if (name.startsWith(ACTIONS_FOR)) {
-            return bitmapActions;
-        }
-        if (name.equals(mainDebugScriptName)) {
-            return bitmapMainMxmlFile;
-        }
-        return bitmapOtherFile;
-    }
+    /*
+     public static int getBitmap(String name, String mainDebugScriptName) {
+     if (isFrameworkClass(name)) {
+     return bitmapFrameworkFile;
+     }
+     if (name.startsWith(SYNTHETIC)) {
+     return bitmapOtherSyntheticFiles;
+     }
+     if (name.startsWith(ACTIONS_FOR)) {
+     return bitmapActions;
+     }
+     if (name.equals(mainDebugScriptName)) {
+     return bitmapMainMxmlFile;
+     }
+     return bitmapOtherFile;
+     }*/
 
     public SWD(int swfVersion, List<DebugItem> items) {
         this.objects = items;

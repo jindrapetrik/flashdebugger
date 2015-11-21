@@ -1,16 +1,16 @@
 /*
  *  Copyright (C) 2015 JPEXS, All rights reserved.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 3.0 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
@@ -25,13 +25,14 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,6 +70,17 @@ public class DebuggerConnection extends Thread {
 
     public int activeIsolateId = -1;
 
+    public boolean isPaused = false;
+
+    private static ExecutorService pool = null;
+
+    private static ExecutorService getPool() {
+        if (pool == null) {
+            pool = Executors.newFixedThreadPool(10);
+        }
+        return pool;
+    }
+
     public void disconnect() {
         if (is != null) {
             try {
@@ -94,9 +106,26 @@ public class DebuggerConnection extends Thread {
     }
 
     public void addMessageListener(DebugMessageListener l) {
+        //inform about already received messages
+        List<InDebuggerMessage> list;
+
+        synchronized (receivedLock) {
+            list = new ArrayList<>(received);
+        }
+        for (InDebuggerMessage msg : list) {
+            getPool().submit(new Runnable() {
+                @Override
+                @SuppressWarnings("unchecked")
+                public void run() {
+                    handle(l, msg);
+                }
+            });
+        }
+
         synchronized (listenersLock) {
             messageListeners.add(l);
         }
+
     }
 
     public void removeMessageListener(DebugMessageListener l) {
@@ -113,34 +142,27 @@ public class DebuggerConnection extends Thread {
         this.os = new BufferedOutputStream(s.getOutputStream());
 
         dc = new DebuggerCommands(this);
-
-        //Respon to InProcessTag with OutProcessedTag
-        addMessageListener(new DebugMessageListener<InProcessTag>() {
-            @Override
-            public void message(InProcessTag message) {
-                try {
-                    writeMessage(new OutProcessedTag(DebuggerConnection.this));
-                } catch (IOException ex) {
-                    disconnect();
-                    //ignore
-                }
-            }
-        });
     }
 
     @SuppressWarnings("unchecked")
     private boolean handle(DebugMessageListener<InDebuggerMessage> l, InDebuggerMessage msg) {
-        Class actualType = (Class) ((ParameterizedType) l.getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
-        boolean canHandle = (actualType.isAssignableFrom(msg.getClass()));
-        if (!canHandle) {
+        try {
+            Class actualType = (Class) ((ParameterizedType) l.getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
+            boolean canHandle = (actualType.isAssignableFrom(msg.getClass()));
+            if (!canHandle) {
+                return false;
+            }
+            l.message(msg);
+            return true;
+        } catch (Exception ex) {
+            Logger.getLogger(DebuggerConnection.class.getName()).log(Level.SEVERE, "handle error", ex);
             return false;
         }
-        l.message(msg);
-        return true;
+
     }
 
     /*
-    
+
      debugger -> flash
      <- 2a	InSWFinfo
      <- 02 	InExit
@@ -193,9 +215,15 @@ public class DebuggerConnection extends Thread {
 
     private final Object receivedLock = new Object();
 
-    public <E extends InDebuggerMessage> void dropMessage(Class<E> msgType) {
+    public <E extends InDebuggerMessage> void dropMessageClass(Class<E> msgType) {
         synchronized (receivedLock) {
             dropped.add(msgType);
+        }
+    }
+
+    public void dropMessage(InDebuggerMessage msg) {
+        synchronized (receivedLock) {
+            received.remove(msg);
         }
     }
 
@@ -236,6 +264,20 @@ public class DebuggerConnection extends Thread {
         }
     }
 
+    private void fireListeners(InDebuggerMessage msg) {
+        synchronized (listenersLock) {
+            for (DebugMessageListener listener : messageListeners) {
+                getPool().submit(new Runnable() {
+                    @Override
+                    @SuppressWarnings("unchecked")
+                    public void run() {
+                        handle(listener, msg);
+                    }
+                });
+            }
+        }
+    }
+
     @Override
     public void run() {
         while (!isInterrupted()) {
@@ -249,19 +291,15 @@ public class DebuggerConnection extends Thread {
                     }
                 }
                 Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "Received: {0}", msg);
-                synchronized (listenersLock) {
-                    for (DebugMessageListener listener : messageListeners) {
-                        handle(listener, msg);
-                    }
-                }
-
                 msg.exec();
+                fireListeners(msg);
 
                 synchronized (receivedLock) {
                     received.add(msg);
                     receivedLock.notifyAll();
                 }
             } catch (IOException ex) {
+                //Logger.getLogger(DebuggerConnection.class.getName()).log(Level.SEVERE, "exited", ex);
                 synchronized (this) {
                     isClosed = true;
                 }
@@ -345,7 +383,7 @@ public class DebuggerConnection extends Thread {
     @SuppressWarnings("unchecked")
     public <E extends InDebuggerMessage> void sendMessageIgnoreResult(OutDebuggerMessage v, Class<E> cls) throws IOException {
         writeMessage(v);
-        dropMessage(cls);
+        dropMessageClass(cls);
     }
 
     protected long readDword() throws IOException {

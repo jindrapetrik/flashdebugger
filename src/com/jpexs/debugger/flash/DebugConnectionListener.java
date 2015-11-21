@@ -12,8 +12,11 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash;
+
+import java.io.IOException;
 
 /**
  *
@@ -22,4 +25,6 @@ package com.jpexs.debugger.flash;
 public interface DebugConnectionListener {
 
     public void connected(DebuggerConnection con);
+
+    public void failedListen(IOException ex);
 }

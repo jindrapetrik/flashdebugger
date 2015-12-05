@@ -16,6 +16,7 @@
  */
 package com.jpexs.debugger.flash;
 
+import com.jpexs.debugger.flash.messages.in.InBreakAtExt;
 import com.jpexs.debugger.flash.messages.in.InCallFunction;
 import com.jpexs.debugger.flash.messages.in.InContinue;
 import com.jpexs.debugger.flash.messages.in.InFrame;
@@ -51,6 +52,7 @@ import com.jpexs.debugger.flash.messages.out.OutStepContinue;
 import com.jpexs.debugger.flash.messages.out.OutStepInto;
 import com.jpexs.debugger.flash.messages.out.OutStepOut;
 import com.jpexs.debugger.flash.messages.out.OutStepOver;
+import com.jpexs.debugger.flash.messages.out.OutStopDebug;
 import com.jpexs.debugger.flash.messages.out.OutSwfInfo;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -292,6 +294,18 @@ public class DebuggerCommands {
 
     public void setSetterTimeout(int timeout) throws IOException {
         setOption("setter_timeout", "" + timeout);
+    }
+
+    public boolean suspend() throws IOException {
+        int tries = 30;
+        while (tries > 0) {
+            InBreakAtExt iba = connection.sendMessageWithTimeout(new OutStopDebug(connection), InBreakAtExt.class);
+            if (iba != null) {
+                return true;
+            }
+            tries--;
+        }
+        return false;
     }
 
 }

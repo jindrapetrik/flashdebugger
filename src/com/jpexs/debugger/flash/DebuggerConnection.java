@@ -56,6 +56,8 @@ public class DebuggerConnection extends Thread {
 
     private static final String FLASH_PREFIX = "$flash_";
 
+    public static final int PREF_RESPONSE_TIMEOUT = 750;
+
     public int playerVersion = 0;
     public int sizeOfPtr = 4;
     public boolean squelchEnabled = false;
@@ -227,8 +229,14 @@ public class DebuggerConnection extends Thread {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public <E extends InDebuggerMessage> E getMessage(Class<E> msgType) throws IOException {
+        return getMessage(msgType, 0);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <E extends InDebuggerMessage> E getMessage(Class<E> msgType, long timeout) throws IOException {
+        long startTime = System.currentTimeMillis();
+        long maxFinishTime = startTime + timeout;
         synchronized (receivedLock) {
             while (true) {
                 loopi:
@@ -248,8 +256,17 @@ public class DebuggerConnection extends Thread {
                         return (E) msg;
                     }
                 }
+                long currentTime = System.currentTimeMillis();
+                long remainingTime = maxFinishTime - currentTime;
+                if (timeout > 0 && remainingTime <= 0) {
+                    return null;
+                }
                 try {
-                    receivedLock.wait();
+                    if (timeout > 0) {
+                        receivedLock.wait(remainingTime);
+                    } else {
+                        receivedLock.wait();
+                    }
                     boolean cls;
                     synchronized (this) {
                         cls = isClosed;
@@ -368,7 +385,19 @@ public class DebuggerConnection extends Thread {
     @SuppressWarnings("unchecked")
     public <E extends InDebuggerMessage> E sendMessage(OutDebuggerMessage v, Class<E> cls) throws IOException {
         writeMessage(v);
-        return getMessage(cls);
+        return getMessage(cls, 0);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <E extends InDebuggerMessage> E sendMessageWithTimeout(OutDebuggerMessage v, Class<E> cls) throws IOException {
+        writeMessage(v);
+        return getMessage(cls, PREF_RESPONSE_TIMEOUT);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <E extends InDebuggerMessage> E sendMessage(OutDebuggerMessage v, Class<E> cls, long timeout) throws IOException {
+        writeMessage(v);
+        return getMessage(cls, timeout);
     }
 
     /**

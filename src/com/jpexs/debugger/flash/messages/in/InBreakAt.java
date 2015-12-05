@@ -41,9 +41,8 @@ public class InBreakAt extends InDebuggerMessage {
     public InBreakAt(DebuggerConnection c, byte[] data) {
         super(c, ID, data);
         if (!wideLines) {
-            long bp = readDWord();
-            file = decodeFile(bp);
-            line = decodeLine(bp);
+            file = readWord();
+            line = readWord();
         } else {
             file = (int) readDWord();
             line = (int) readDWord();

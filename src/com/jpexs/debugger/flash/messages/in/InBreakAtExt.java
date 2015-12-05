@@ -46,9 +46,8 @@ public class InBreakAtExt extends InDebuggerMessage {
     public InBreakAtExt(DebuggerConnection c, byte[] data) {
         super(c, ID, data);
         if (!wideLines) {
-            long bp = readDWord();
-            file = decodeFile(bp);
-            line = decodeLine(bp);
+            file = readWord();
+            line = readWord();
         } else {
             file = (int) readDWord();
             line = (int) readDWord();
@@ -62,9 +61,8 @@ public class InBreakAtExt extends InDebuggerMessage {
             int file_i;
             int line_i;
             if (!wideLines) {
-                long bpi = readDWord();
-                file_i = decodeFile(bpi);
-                line_i = decodeLine(bpi);
+                file_i = readWord();
+                line_i = readWord();
             } else {
                 file_i = (int) readDWord();
                 line_i = (int) readDWord();

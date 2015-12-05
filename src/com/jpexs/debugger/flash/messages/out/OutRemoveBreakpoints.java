@@ -60,7 +60,8 @@ public class OutRemoveBreakpoints extends OutDebuggerMessage {
         writeDWord(os, files.size());
         for (int i = 0; i < files.size(); i++) {
             if (!connection.wideLines) {
-                writeId(os, files.get(i), lines.get(i));
+                writeWord(os, files.get(i));
+                writeWord(os, lines.get(i));
             } else {
                 writeDWord(os, files.get(i));
                 writeDWord(os, lines.get(i));

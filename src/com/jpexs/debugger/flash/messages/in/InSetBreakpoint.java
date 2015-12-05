@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.in;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -44,9 +45,8 @@ public class InSetBreakpoint extends InDebuggerMessage {
         lines = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             if (!wideLines) {
-                long bp = readDWord();
-                files.add(decodeFile(bp));
-                lines.add(decodeLine(bp));
+                files.add(readWord());
+                lines.add(readWord());
             } else {
                 files.add((int) readDWord());
                 lines.add((int) readDWord());

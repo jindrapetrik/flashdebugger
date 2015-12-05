@@ -62,7 +62,8 @@ public class OutSetBreakpoints extends OutDebuggerMessage {
             int file = files.get(i);
             int line = lines.get(i);
             if (!connection.wideLines) {
-                writeId(os, file, line);
+                writeWord(os, file);
+                writeWord(os, line);
             } else {
                 writeDWord(os, file);
                 writeDWord(os, line);

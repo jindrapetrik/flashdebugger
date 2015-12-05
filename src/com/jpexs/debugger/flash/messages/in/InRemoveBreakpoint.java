@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.in;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -29,19 +30,27 @@ public class InRemoveBreakpoint extends InDebuggerMessage {
 
     public static final int ID = 22;
 
-    public List<Integer> breakPoints;
+    public List<Integer> breakPointFiles;
+    public List<Integer> breakPointLines;
 
     @Override
     public String toString() {
-        return super.toString() + "(breakPoints.count=" + breakPoints.size() + ")";
+        return super.toString() + "(breakPoints.count=" + breakPointFiles.size() + ")";
     }
 
     public InRemoveBreakpoint(DebuggerConnection c, byte[] data) {
         super(c, ID, data);
-        breakPoints = new ArrayList<>();
+        breakPointFiles = new ArrayList<>();
+        breakPointLines = new ArrayList<>();
         long count = readDWord();
         for (int i = 0; i < count; i++) {
-            breakPoints.add((int) readDWord());
+            if (c.wideLines) {
+                breakPointFiles.add((int) readDWord());
+                breakPointLines.add((int) readDWord());
+            } else {
+                breakPointFiles.add((int) readWord());
+                breakPointLines.add((int) readWord());
+            }
         }
     }
 

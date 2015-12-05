@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash;
 
 import java.io.ByteArrayOutputStream;
@@ -131,9 +132,4 @@ public abstract class OutDebuggerMessage extends DebuggerMessage {
             writeLong(os, ptr);
         }
     }
-
-    public void writeId(OutputStream os, int file, int line) throws IOException {
-        writeDWord(os, (file & 0xffff) + ((line & 0xffff) << 16));
-    }
-
 }

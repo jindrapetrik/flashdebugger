@@ -213,14 +213,17 @@ public class SWD {
 
     public static class DebugBreakpoint extends DebugItem {
 
-        public int module;
+        public static final int MAX_FILE = 0xffff;
+        public static final int MAX_LINE = 0xffff;
+
+        public int file;
         public int line;
 
         public static final int ID = 2;
 
         @Override
         public String toString() {
-            return "DebugBreakpoint[module=" + module + ", line=" + line + "]";
+            return "DebugBreakpoint[module=" + file + ", line=" + line + "]";
         }
 
         public DebugBreakpoint() {
@@ -230,24 +233,29 @@ public class SWD {
 
         public DebugBreakpoint(InputStream is) throws IOException {
             super(ID);
-            int bp = readUI32(is);
-            module = bp & 0xffff;
-            line = (bp >> 16) & 0xffff;
+
+            file = readUI16(is);
+            line = readUI16(is);
         }
 
-        public DebugBreakpoint(int module, int line) {
+        public DebugBreakpoint(int file, int line) {
             super(ID);
+            if (file > MAX_FILE) {
+                throw new IllegalArgumentException("File id exceeds " + MAX_FILE);
+            }
+            if (file > MAX_LINE) {
+                throw new IllegalArgumentException("Line number exceeds " + MAX_LINE);
+            }
 
-            this.module = module;
+            this.file = file;
             this.line = line;
         }
 
         @Override
         protected void writeTo(OutputStream os) throws IOException {
-            long bp = ((line << 16) & 0xffff0000) | (module);
-            writeUI32(os, bp);
+            writeUI16(os, file);
+            writeUI16(os, line);
         }
-
     }
 
     public static class DebugId extends DebugItem {
@@ -332,7 +340,6 @@ public class SWD {
         for (DebugItem di : objects) {
             os.write(di.getBytes());
         }
-
     }
 
     public SWD(byte[] data) throws IOException {
@@ -393,6 +400,14 @@ public class SWD {
         os.write(b3);
     }
 
+    private static void writeUI16(OutputStream os, int val) throws IOException {
+        int b0 = (int) (val & 0xff);
+        int b1 = (int) ((val >> 8) & 0xff);
+
+        os.write(b0);
+        os.write(b1);
+    }
+
     private static String readString(InputStream is) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int r;
@@ -423,6 +438,10 @@ public class SWD {
             throw new IOException("End of stream reached");
         }
         return v;
+    }
+
+    private static int readUI16(InputStream is) throws IOException {
+        return readUI8(is) + (readUI8(is) << 8);
     }
 
     private static int readUI32(InputStream is) throws IOException {

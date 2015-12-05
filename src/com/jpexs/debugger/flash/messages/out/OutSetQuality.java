@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.out;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -29,6 +30,14 @@ public class OutSetQuality extends OutDebuggerMessage {
     public static int ID = 4;
 
     public String quality;
+
+    public static final String QUALITY_LOW = "LOW";
+    public static final String QUALITY_MEDIUM = "MEDIUM";
+    public static final String QUALITY_HIGH = "HIGH";
+    public static final String QUALITY_AUTOLOW = "AUTOLOW";
+    public static final String QUALITY_AUTOMEDIUM = "AUTOMEDIUM";
+    public static final String QUALITY_AUTOHIGH = "AUTOHIGH";
+    public static final String QUALITY_BEST = "BEST";
 
     @Override
     public String toString() {

@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.out;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -32,6 +33,12 @@ public class OutSetProperty extends OutDebuggerMessage {
     public int propertyId;
     public String type;
     public String value;
+
+    public static final String[] PROPERTY_NAMES = new String[]{
+        "_x", "_y", "_xscale", "_yscale", "_currentframe", "_totalframes", "_alpha", "_visible",
+        "_width", "_height", "_rotation", "_target", "_framesloaded", "_name", "_droptarget",
+        "_url", "_highquality", "_focusrect", "_soundbuftime", "_quality", "_xmouse", "_ymouse"
+    };
 
     @Override
     public String toString() {

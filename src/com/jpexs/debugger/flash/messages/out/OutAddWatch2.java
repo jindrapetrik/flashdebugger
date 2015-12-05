@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.out;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -27,6 +28,9 @@ import java.io.OutputStream;
 public class OutAddWatch2 extends OutDebuggerMessage {
 
     public static int ID = 49;
+
+    public static int FLAG_READ = 1;
+    public static int FLAG_WRITE = 2;
 
     @Override
     public String toString() {

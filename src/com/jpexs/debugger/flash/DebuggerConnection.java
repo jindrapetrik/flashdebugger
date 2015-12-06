@@ -72,6 +72,8 @@ public class DebuggerConnection extends Thread {
 
     public int activeIsolateId = -1;
 
+    public boolean isAS3 = false;
+
     public boolean isPaused = false;
 
     private static ExecutorService pool = null;

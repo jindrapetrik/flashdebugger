@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.in;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -45,7 +46,10 @@ public class InWatch2 extends InDebuggerMessage {
         oldFlags = readWord();
         oldTag = readWord();
         flags = readWord();
-        objId = readPtr(c);
+        objId = readWord();
+        if (c.isAS3) {
+            objId = readDWord();
+        }
         name = readString();
     }
 

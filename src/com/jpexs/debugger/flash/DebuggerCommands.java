@@ -195,17 +195,32 @@ public class DebuggerCommands {
 
     }
 
-    public boolean addWatch(long varId, String varName, int flags, int tag) throws IOException {
-        InWatch2 iw2 = connection.sendMessage(new OutAddWatch2(connection, varId, varName, flags, tag), InWatch2.class);
+    public static class Watch {
 
-        return iw2.success == 1;
+        public String varName;
+        public long varId;
+        public int tag;
+        public int flags;
 
+        public Watch(String varName, long varId, int tag, int flags) {
+            this.varName = varName;
+            this.varId = varId;
+            this.tag = tag;
+            this.flags = flags;
+        }
+    }
+
+    public Watch addWatch(long varId, String memberName, int flags, int tag) throws IOException {
+        InWatch2 iw2 = connection.sendMessage(new OutAddWatch2(connection, varId, memberName, flags, tag), InWatch2.class);
+        if (iw2.success > 0) {
+            return new Watch(memberName, varId, tag, iw2.flags);
+        }
+        return null;
     }
 
     public boolean removeWatch(long varId, String memberName) throws IOException {
         InWatch2 iw2 = connection.sendMessage(new OutRemoveWatch2(connection, varId, memberName), InWatch2.class);
         return iw2.success == 1;
-
     }
 
     public void setActiveIsolate(long isolate) throws IOException {

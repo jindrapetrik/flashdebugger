@@ -31,6 +31,8 @@ public class InGetVariable extends InDebuggerMessage {
     public static final int ID = 30;
 
     public List<Variable> childs;
+    public List<Long> childsIds;
+
     public Variable parent;
     public long parentId;
 
@@ -42,11 +44,13 @@ public class InGetVariable extends InDebuggerMessage {
     public InGetVariable(DebuggerConnection c, byte[] data) {
         super(c, ID, data);
         childs = new ArrayList<>();
+        childsIds = new ArrayList<>();
         boolean hasParent = false;
 
         while (available() > 0) {
-            parentId = readPtr(c);
+            long id = readPtr(c);
             if (!hasParent) {
+                parentId = id;
                 parent = readVariable(c);
                 hasParent = true;
             } else {
@@ -59,6 +63,7 @@ public class InGetVariable extends InDebuggerMessage {
                  }
                  }*/
                 childs.add(child);
+                childsIds.add(id);
             }
         }
     }

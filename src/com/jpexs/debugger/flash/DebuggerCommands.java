@@ -18,6 +18,7 @@ package com.jpexs.debugger.flash;
 
 import com.jpexs.debugger.flash.messages.in.InBreakAtExt;
 import com.jpexs.debugger.flash.messages.in.InCallFunction;
+import com.jpexs.debugger.flash.messages.in.InConstantPool;
 import com.jpexs.debugger.flash.messages.in.InContinue;
 import com.jpexs.debugger.flash.messages.in.InFrame;
 import com.jpexs.debugger.flash.messages.in.InGetActions;
@@ -33,6 +34,7 @@ import com.jpexs.debugger.flash.messages.in.InSwfInfo;
 import com.jpexs.debugger.flash.messages.in.InWatch2;
 import com.jpexs.debugger.flash.messages.out.OutAddWatch2;
 import com.jpexs.debugger.flash.messages.out.OutCallFunction;
+import com.jpexs.debugger.flash.messages.out.OutConstantPool;
 import com.jpexs.debugger.flash.messages.out.OutContinue;
 import com.jpexs.debugger.flash.messages.out.OutExit;
 import com.jpexs.debugger.flash.messages.out.OutGetActions;
@@ -149,6 +151,10 @@ public class DebuggerCommands {
             }
         }
         return false;
+    }
+
+    public InConstantPool getConstantPool(int poolId) throws IOException {
+        return connection.sendMessage(new OutConstantPool(connection, poolId), InConstantPool.class);
     }
 
     public InFrame getFrame(int depth) throws IOException {

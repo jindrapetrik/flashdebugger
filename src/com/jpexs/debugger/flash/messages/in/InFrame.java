@@ -34,13 +34,13 @@ public class InFrame extends InDebuggerMessage {
     public List<Variable> registers;
 
     public List<Variable> variables;
-    public List<Long> variableIds;
+    public List<Long> frameIds;
 
     public List<Variable> arguments;
-    public List<Long> argumentIds;
+    public List<Long> argumentFrameIds;
 
     public List<Variable> scopeChain;
-    public List<Long> scopeChainIds;
+    public List<Long> scopeChainFrameIds;
 
     public long frameId = -1;
     public Variable frame;
@@ -69,13 +69,13 @@ public class InFrame extends InDebuggerMessage {
             frame = readVariable(c);
         }
         variables = new ArrayList<>();
-        variableIds = new ArrayList<>();
+        frameIds = new ArrayList<>();
         arguments = new ArrayList<>();
-        argumentIds = new ArrayList<>();
+        argumentFrameIds = new ArrayList<>();
         scopeChain = new ArrayList<>();
-        scopeChainIds = new ArrayList<>();
+        scopeChainFrameIds = new ArrayList<>();
         while (available() > 0) {
-            long id = readPtr(c);
+            long frameId = readPtr(c);
             Variable child = readVariable(c);
             if (currentArg == -1 && child.name.equals(ARGUMENTS_MARKER)) {
                 currentArg = 0;
@@ -94,13 +94,13 @@ public class InFrame extends InDebuggerMessage {
 
             if (gettingScopeChain) {
                 scopeChain.add(child);
-                scopeChainIds.add(id);
+                scopeChainFrameIds.add(frameId);
             } else if (currentArg >= 0) {
                 arguments.add(child);
-                argumentIds.add(id);
+                argumentFrameIds.add(frameId);
             } else {
-                variableIds.add(id);
                 variables.add(child);
+                frameIds.add(frameId);
             }
         }
     }

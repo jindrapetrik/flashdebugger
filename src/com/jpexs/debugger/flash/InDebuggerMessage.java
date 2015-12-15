@@ -356,6 +356,7 @@ public class InDebuggerMessage extends DebuggerMessage {
 
                 value = (Double) dval;
                 isPrimitive = true;
+                vType = VariableType.NUMBER;
                 break;
             }
 
@@ -363,6 +364,8 @@ public class InDebuggerMessage extends DebuggerMessage {
                 int bval = readByte();
                 value = (Boolean) (bval == 0);
                 isPrimitive = true;
+                vType = VariableType.BOOLEAN;
+
                 break;
             }
 
@@ -371,6 +374,8 @@ public class InDebuggerMessage extends DebuggerMessage {
 
                 value = s;
                 isPrimitive = true;
+                vType = VariableType.STRING;
+
                 break;
             }
 
@@ -432,12 +437,14 @@ public class InDebuggerMessage extends DebuggerMessage {
             case kNullType: {
                 value = null;
                 isPrimitive = true;
+                vType = VariableType.NULL;
                 break;
             }
 
             case kUndefinedType: {
                 value = Value.UNDEFINED;
                 isPrimitive = true;
+                vType = VariableType.UNDEFINED;
                 break;
             }
 

@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.out;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -28,19 +29,19 @@ public class OutSetVariable extends OutDebuggerMessage {
 
     public static int ID = 11;
 
-    public long id;
+    public long parentId;
     public String name;
     public String type;
     public String value;
 
     @Override
     public String toString() {
-        return super.toString() + "(id=" + id + ", name=" + name + ", type=" + type + ", value=" + value + ")";
+        return super.toString() + "(parentId=" + parentId + ", name=" + name + ", type=" + type + ", value=" + value + ")";
     }
 
-    public OutSetVariable(DebuggerConnection c, long id, String name, String type, String value) {
+    public OutSetVariable(DebuggerConnection c, long parentId, String name, String type, String value) {
         super(c, ID);
-        this.id = id;
+        this.parentId = parentId;
         this.name = name;
         this.type = type;
         this.value = value;
@@ -48,7 +49,7 @@ public class OutSetVariable extends OutDebuggerMessage {
 
     @Override
     public void writeTo(OutputStream os) throws IOException {
-        writePtr(os, id);
+        writePtr(os, parentId);
         writeString(os, name);
         writeString(os, type);
         writeString(os, value);

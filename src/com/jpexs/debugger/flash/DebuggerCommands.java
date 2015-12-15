@@ -183,6 +183,7 @@ public class DebuggerCommands {
         } else {
             InSetVariable2 isv = connection.sendMessage(osv, InSetVariable2.class);
         }
+        //InGetVariable igv = getVariable(id, name, false, false);
         //TODO: handle two results?
 
         squelch(true);

@@ -29,7 +29,7 @@ public class OutSetProperty extends OutDebuggerMessage {
 
     public static int ID = 12;
 
-    public long objId;
+    public long addr;
     public int propertyId;
     public String type;
     public String value;
@@ -42,12 +42,12 @@ public class OutSetProperty extends OutDebuggerMessage {
 
     @Override
     public String toString() {
-        return super.toString() + "(objId=" + objId + ", propertyId=" + propertyId + ", type=" + type + ", value=" + value + ")";
+        return super.toString() + "(addr=" + addr + ", propertyId=" + propertyId + ", type=" + type + ", value=" + value + ")";
     }
 
-    public OutSetProperty(DebuggerConnection c, long objId, int propertyId, String type, String value) {
+    public OutSetProperty(DebuggerConnection c, long addr, int propertyId, String type, String value) {
         super(c, ID);
-        this.objId = objId;
+        this.addr = addr;
         this.propertyId = propertyId;
         this.type = type;
         this.value = value;
@@ -55,7 +55,8 @@ public class OutSetProperty extends OutDebuggerMessage {
 
     @Override
     public void writeTo(OutputStream os) throws IOException {
-        writePtr(os, objId);
+        //writePtr(os, objId);
+        writeDWord(os, addr);
         writeWord(os, propertyId);
         writeString(os, type);
         writeString(os, value);

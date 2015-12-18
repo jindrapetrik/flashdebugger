@@ -387,7 +387,7 @@ public class InDebuggerMessage extends DebuggerMessage {
                 int rsvd = (oid == -1) ? 0 : readWord();
                 typeName = (oid == -1) ? "" : readString();
                 /* anirudhs: Date fix for expression evaluation */
-                /* Player 10.2 onwards, the typename for Date comes
+ /* Player 10.2 onwards, the typename for Date comes
                  * as <dateformat>@oid where example of date format is:
                  * <Tue Feb 7 15:41:16 GMT+0530 2012>
                  * We have to fix the typename to how it originally
@@ -478,7 +478,7 @@ public class InDebuggerMessage extends DebuggerMessage {
             }
         }
 
-        return new Variable(name, vType, value, typeName, className, isPrimitive);
+        return new Variable(name, vType, value, typeName, className, isPrimitive, flags);
     }
 
     public int getTargetIsolate() {

@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.out;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -28,21 +29,21 @@ public class OutConstantPool extends OutDebuggerMessage {
 
     public static int ID = 39;
 
-    public int poolId;
+    public int swfIndex;
 
     @Override
     public String toString() {
-        return super.toString() + "(poolId=" + poolId + ")";
+        return super.toString() + "(swfIndex=" + swfIndex + ")";
     }
 
-    public OutConstantPool(DebuggerConnection c, int poolId) {
+    public OutConstantPool(DebuggerConnection c, int swfIndex) {
         super(c, ID);
-        this.poolId = poolId;
+        this.swfIndex = swfIndex;
     }
 
     @Override
     public void writeTo(OutputStream os) throws IOException {
-        writeWord(os, poolId);
+        writeWord(os, swfIndex);
     }
 
 }

@@ -31,18 +31,18 @@ public class InConstantPool extends InDebuggerMessage {
 
     public static final int ID = 43;
 
-    public int poolId;
+    public int swfIndex;
     public List<Long> ids;
     public List<Variable> vars;
 
     @Override
     public String toString() {
-        return super.toString() + "(poolId=" + poolId + ",vars.count=" + vars.size() + ")";
+        return super.toString() + "(swfIndex=" + swfIndex + ",vars.count=" + vars.size() + ")";
     }
 
     public InConstantPool(DebuggerConnection c, byte[] data) {
         super(c, ID, data);
-        poolId = readWord();
+        swfIndex = readWord();
         int count = (int) readDWord();
         ids = new ArrayList<>();
         vars = new ArrayList<>();

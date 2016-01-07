@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.out;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -28,22 +29,22 @@ public class OutGetSwd extends OutDebuggerMessage {
 
     public static int ID = 33;
 
-    public int index;
+    public int swfIndex;
 
     @Override
     public String toString() {
-        return super.toString() + "(index=" + index + ")";
+        return super.toString() + "(swfIndex=" + swfIndex + ")";
     }
 
-    public OutGetSwd(DebuggerConnection c, int index) {
+    public OutGetSwd(DebuggerConnection c, int swfIndex) {
         super(c, ID);
-        this.index = index;
+        this.swfIndex = swfIndex;
         //receive InGetSwd
     }
 
     @Override
     public void writeTo(OutputStream os) throws IOException {
-        writeWord(os, index);
+        writeWord(os, swfIndex);
     }
 
 }

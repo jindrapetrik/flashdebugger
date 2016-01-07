@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.out;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -28,18 +29,18 @@ public class OutGetActions extends OutDebuggerMessage {
 
     public static int ID = 36;
 
-    public int module;
+    public int swfIndex;
     public int offset;
     public int length;
 
     @Override
     public String toString() {
-        return super.toString() + "(module=" + module + ", offset=" + offset + ", length=" + length + ")";
+        return super.toString() + "(swfIndex=" + swfIndex + ", offset=" + offset + ", length=" + length + ")";
     }
 
     public OutGetActions(DebuggerConnection c, int module, int offset, int length) {
         super(c, ID);
-        this.module = module;
+        this.swfIndex = module;
         this.offset = offset;
         this.length = length;
         //receive InGetActions
@@ -47,7 +48,7 @@ public class OutGetActions extends OutDebuggerMessage {
 
     @Override
     public void writeTo(OutputStream os) throws IOException {
-        writeWord(os, module);
+        writeWord(os, swfIndex);
         writeWord(os, 0); //reserved
         writeDWord(os, offset);
         writeDWord(os, length);

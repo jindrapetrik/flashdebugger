@@ -38,9 +38,9 @@ public class OutGetActions extends OutDebuggerMessage {
         return super.toString() + "(swfIndex=" + swfIndex + ", offset=" + offset + ", length=" + length + ")";
     }
 
-    public OutGetActions(DebuggerConnection c, int module, int offset, int length) {
+    public OutGetActions(DebuggerConnection c, int swfIndex, int offset, int length) {
         super(c, ID);
-        this.swfIndex = module;
+        this.swfIndex = swfIndex;
         this.offset = offset;
         this.length = length;
         //receive InGetActions

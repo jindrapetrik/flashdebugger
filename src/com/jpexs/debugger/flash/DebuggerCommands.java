@@ -116,13 +116,13 @@ public class DebuggerCommands {
         return true;//?
     }
 
-    public byte[] getActions(int module, int offset, int length) throws IOException {
-        InGetActions iga = connection.sendMessage(new OutGetActions(connection, module, offset, length), InGetActions.class);
+    public byte[] getActions(int swfIndex, int offset, int length) throws IOException {
+        InGetActions iga = connection.sendMessage(new OutGetActions(connection, swfIndex, offset, length), InGetActions.class);
         return iga.actionData; //TODO: offset?
     }
 
-    public List<InSwfInfo.SwfInfo> getSwfInfo(int module) throws IOException {
-        InSwfInfo isi = connection.sendMessage(new OutSwfInfo(connection, module), InSwfInfo.class);
+    public List<InSwfInfo.SwfInfo> getSwfInfo(int swfIndex) throws IOException {
+        InSwfInfo isi = connection.sendMessage(new OutSwfInfo(connection, swfIndex), InSwfInfo.class);
         return isi.swfInfos;
 
     }

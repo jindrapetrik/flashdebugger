@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.in;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -29,6 +30,16 @@ public class InOption extends InDebuggerMessage {
 
     public String s;
     public String v;
+
+    public static String OPTION_MOVIE = "movie";
+    public static String OPTION_PASSWORD = "password";
+    public static String OPTION_CONCURRENT_PLAYER = "concurrent_player";
+    public static String OPTION_WIDE_LINE_PLAYER = "wide_line_player";
+    public static String OPTION_CAN_TERMINATE = "can_terminate";
+    public static String OPTION_CAN_BREAK_ON_ALL_EXCEPTIONS = "can_break_on_all_exceptions";
+    public static String OPTION_CAN_SET_WATCHPOINTS = "can_set_watchpoints";
+    public static String OPTION_CAN_CALL_FUNCTIONS = "can_call_functions";
+    public static String OPTION_TRACE = "trace";
 
     @Override
     public String toString() {

@@ -253,36 +253,36 @@ public class DebuggerCommands {
     }
 
     public void debuggerSetWideLine() throws IOException {
-        setOption("wide_line_debugger", "on");
+        setOption(OutSetOption.OPTION_WIDE_LINE_DEBUGGER, "on");
     }
 
     public boolean playerIsWideLine() throws IOException {
-        return getOption("wide_line_player", "off").equals("on");
+        return getOption(InOption.OPTION_WIDE_LINE_PLAYER, "off").equals("on");
     }
 
     public boolean playerCanCallFunctions() throws IOException {
-        return getOption("can_call_functions", "off").equals("on");
+        return getOption(InOption.OPTION_CAN_CALL_FUNCTIONS, "off").equals("on");
     }
 
     public boolean playerConcurrency() throws IOException {
-        return getOption("concurrent_player", "off").equals("on");
+        return getOption(InOption.OPTION_CONCURRENT_PLAYER, "off").equals("on");
     }
 
     public boolean playerCanBreakOnAllExceptions() throws IOException {
-        return getOption("can_break_on_all_exceptions", "off").equals("on");
+        return getOption(InOption.OPTION_CAN_BREAK_ON_ALL_EXCEPTIONS, "off").equals("on");
     }
 
     public boolean playerCanTerminate() throws IOException {
-        return getOption("can_terminate", "off").equals("on");
+        return getOption(InOption.OPTION_CAN_TERMINATE, "off").equals("on");
     }
 
     public boolean playerSupportsWatchpoints() throws IOException {
-        return getOption("can_set_watchpoints", "off").equals("on");
+        return getOption(InOption.OPTION_CAN_SET_WATCHPOINTS, "off").equals("on");
     }
 
     public void stopWarning() throws IOException {
-        setOption("disable_script_stuck_dialog", "on"); //AS2
-        setOption("disable_script_stuck", "on"); //hack for AS3
+        setOption(OutSetOption.OPTION_DISABLE_SCRIPT_STUCK_DIALOG, "on"); //AS2
+        setOption(OutSetOption.OPTION_DISABLE_SCRIPT_STUCK, "on"); //hack for AS3
     }
 
     public void setOption(String name, boolean val) throws IOException {
@@ -290,35 +290,35 @@ public class DebuggerCommands {
     }
 
     public void setStopOnFault() throws IOException {
-        setOption("break_on_fault", true);
+        setOption(OutSetOption.OPTION_BREAK_ON_FAULT, true);
     }
 
     public void setEnumerateOverride() throws IOException {
-        setOption("enumerate_override", true);
+        setOption(OutSetOption.OPTION_ENUMERATE_OVERRIDE, true);
     }
 
     public void setNotifyFailure() throws IOException {
-        setOption("notify_on_failure", true);
+        setOption(OutSetOption.OPTION_NOTIFY_ON_FAILURE, true);
     }
 
     public void setInvokeSetters() throws IOException {
-        setOption("invoke_setters", true);
+        setOption(OutSetOption.OPTION_INVOKE_SETTERS, true);
     }
 
     public void setSwfLoadNotify() throws IOException {
-        setOption("swf_load_messages", true);
+        setOption(OutSetOption.OPTION_LOAD_MESSAGES, true);
     }
 
     public void consoleErrorsAsTrace(boolean on) throws IOException {
-        setOption("console_errors", on);
+        setOption(OutSetOption.OPTION_CONSOLE_ERRORS, on);
     }
 
     public void setGetterTimeout(int timeout) throws IOException {
-        setOption("getter_timeout", "" + timeout);
+        setOption(OutSetOption.OPTION_GETTER_TIMEOUT, "" + timeout);
     }
 
     public void setSetterTimeout(int timeout) throws IOException {
-        setOption("setter_timeout", "" + timeout);
+        setOption(OutSetOption.OPTION_SETTER_TIMEOUT, "" + timeout);
     }
 
     public boolean suspend() throws IOException {

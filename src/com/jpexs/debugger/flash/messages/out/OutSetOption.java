@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.out;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -30,6 +31,22 @@ public class OutSetOption extends OutDebuggerMessage {
 
     public String option;
     public String value;
+
+    public static final String OPTION_CONCURRENT_DEBUGGER = "concurrent_debugger";
+    public static final String OPTION_WIDE_LINE_DEBUGGER = "wide_line_debugger";
+    public static final String OPTION_ASTRACE = "astrace";
+    public static final String OPTION_BREAK_ON_FAULT = "break_on_fault";
+    public static final String OPTION_CONSOLE_ERRORS = "console_errors";
+    public static final String OPTION_DISABLE_SCRIPT_STUCK = "disable_script_stuck";
+    public static final String OPTION_DISABLE_SCRIPT_STUCK_DIALOG = "disable_script_stuck_dialog";
+    public static final String OPTION_ENUMERATE_OVERRIDE = "enumerate_override";
+    public static final String OPTION_GETTER_TIMEOUT = "getter_timeout";
+    public static final String OPTION_INVOKE_SETTERS = "invoke_setters";
+    public static final String OPTION_NOTIFY_ON_FAILURE = "notify_on_failure";
+    public static final String OPTION_SETTER_TIMEOUT = "setter_timeout";
+    public static final String OPTION_SCRIPT_TIMEOUT = "script_timeout";
+    public static final String OPTION_LOAD_MESSAGES = "swf_load_messages";
+    public static final String OPTION_VERBOSE = "verbose";
 
     @Override
     public String toString() {

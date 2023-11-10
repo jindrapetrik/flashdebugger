@@ -23,7 +23,6 @@ import com.jpexs.debugger.flash.messages.in.InNumScript;
 import com.jpexs.debugger.flash.messages.in.InScript;
 import com.jpexs.debugger.flash.messages.in.InSwfInfo.SwfInfo;
 import com.jpexs.debugger.flash.messages.out.OutGetBreakReason;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;

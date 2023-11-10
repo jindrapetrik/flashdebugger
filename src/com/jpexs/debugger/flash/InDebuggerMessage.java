@@ -417,7 +417,7 @@ public class InDebuggerMessage extends DebuggerMessage {
                 }
 
                 className = classNameFor(cType, false);
-                value = new Long(oid);
+                value = (Long) oid;
                 vType = (isFnc == 0) ? VariableType.OBJECT : VariableType.FUNCTION;
                 break;
             }
@@ -429,7 +429,7 @@ public class InDebuggerMessage extends DebuggerMessage {
                 typeName = (oid == -1) ? "" : readString();
                 className = classNameFor(cType, true);
 
-                value = new Long(oid);
+                value = (Long) oid;
                 vType = VariableType.MOVIECLIP;
                 break;
             }

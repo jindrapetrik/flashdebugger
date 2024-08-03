@@ -19,6 +19,8 @@ package com.jpexs.debugger.flash;
 public interface VariableFlags {
 
     public static final int DONT_ENUMERATE = 0x00000001;
+    
+    public static final int DONT_DELETE = 0x00000002;
 
     //does not imply isconst
     public static final int READ_ONLY = 0x00000004;

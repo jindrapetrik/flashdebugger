@@ -42,6 +42,9 @@ public interface VariableFlags {
     //Only visible by VM initialized for version 9 or higher 
     public static final int ONLY_SWF9_UP = 0x00002000;   
 
+    //Only visible by VM initialized for version 9 or higher 
+    public static final int ONLY_SWF10_UP = 0x00004000;
+
     public static final int IS_LOCAL = 0x00000020;
 
     /**

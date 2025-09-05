@@ -37,9 +37,9 @@ public class InSetBreakpoint extends InDebuggerMessage {
     public String toString() {
         List<String> parts = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
-            parts.add("file" + files.get(i)+ ":line" + lines.get(i));
+            parts.add("file" + files.get(i) + ":line" + lines.get(i));
         }
-        return super.toString() + " [" + String.join(",\r\n", parts) + "]" ;// + "(bp.count=" + files.size() + ")";
+        return super.toString() + " [" + String.join(",\r\n", parts) + "]";// + "(bp.count=" + files.size() + ")";
     }
 
     public InSetBreakpoint(DebuggerConnection c, byte[] data) {
@@ -56,6 +56,6 @@ public class InSetBreakpoint extends InDebuggerMessage {
                 lines.add((int) readDWord());
             }
         }
-    }        
+    }
 
 }

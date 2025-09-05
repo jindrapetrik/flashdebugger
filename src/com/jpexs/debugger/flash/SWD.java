@@ -323,6 +323,7 @@ public class SWD {
         }
         return name;
     }
+
     /*
      public static int getBitmap(String name, String mainDebugScriptName) {
      if (isFrameworkClass(name)) {

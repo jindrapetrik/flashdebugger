@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.out;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -23,9 +24,8 @@ import com.jpexs.debugger.flash.OutDebuggerMessage;
  * @author JPEXS
  */
 public class OutForward extends OutDebuggerMessage {
-    
-    public static int ID = 8;
 
+    public static int ID = 8;
 
     public OutForward(DebuggerConnection c) {
         super(c, ID);

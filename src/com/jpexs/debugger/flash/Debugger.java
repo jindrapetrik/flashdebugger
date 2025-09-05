@@ -207,8 +207,7 @@ public class Debugger {
                     con.addMessageListener(new DebugMessageListener<InBreakAt>() {
 
                         @Override
-                        public
-                                void message(InBreakAt bra) {
+                        public void message(InBreakAt bra) {
                             try {
 
                                 InBreakReason ibr = con.sendMessage(new OutGetBreakReason(con), InBreakReason.class

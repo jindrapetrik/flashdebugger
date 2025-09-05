@@ -20,27 +20,27 @@ public interface VariableFlags {
 
     //Protect from enumeration
     public static final int DONT_ENUMERATE = 0x00000001;
-    
+
     //Protect from deletion
     public static final int DONT_DELETE = 0x00000002;
 
     //Protect from assigning a value. Does not imply isconst
     public static final int READ_ONLY = 0x00000004;
-    
+
     //Only visible by VM initialized for version 6 or higher 
     public static final int ONLY_SWF6_UP = 0x00000080;
-    
+
     //Ignore in SWF6-initialized VM
     public static final int IGNORE_SWF6 = 0x00000100;
-    
+
     //Only visible by VM initialized for version 7 or higher 
     public static final int ONLY_SWF7_UP = 0x00000400;
-    
+
     //Only visible by VM initialized for version 8 or higher 
     public static final int ONLY_SWF8_UP = 0x00001000;
-    
+
     //Only visible by VM initialized for version 9 or higher 
-    public static final int ONLY_SWF9_UP = 0x00002000;   
+    public static final int ONLY_SWF9_UP = 0x00002000;
 
     //Only visible by VM initialized for version 9 or higher 
     public static final int ONLY_SWF10_UP = 0x00004000;

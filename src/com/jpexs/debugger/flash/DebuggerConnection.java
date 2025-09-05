@@ -28,7 +28,9 @@ import java.io.OutputStream;
 import java.lang.reflect.ParameterizedType;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -76,11 +78,15 @@ public class DebuggerConnection extends Thread {
 
     public boolean isPaused = false;
 
+    private Map<DebugMessageListener, List<InDebuggerMessage>> listenerQueues = Collections.synchronizedMap(new LinkedHashMap<>());
+
+    private Map<DebugMessageListener, Object> listenerLocks = Collections.synchronizedMap(new LinkedHashMap<>());
+
     private static ExecutorService pool = null;
 
     private static ExecutorService getPool() {
         if (pool == null) {
-            pool = Executors.newFixedThreadPool(10);
+            pool = Executors.newCachedThreadPool();
         }
         return pool;
     }
@@ -107,6 +113,20 @@ public class DebuggerConnection extends Thread {
                 //ignore
             }
         }
+        if (pool != null) {
+            pool.shutdownNow();
+            pool = null;
+        }
+
+        synchronized (listenersLock) {
+            messageListeners.clear();
+            listenerQueues.clear();
+            listenerLocks.clear();
+        }
+
+        synchronized (receivedLock) {
+            received.clear();
+        }
     }
 
     public void addMessageListener(DebugMessageListener l) {
@@ -116,24 +136,41 @@ public class DebuggerConnection extends Thread {
         synchronized (receivedLock) {
             list = new ArrayList<>(received);
         }
-        for (InDebuggerMessage msg : list) {
-            getPool().submit(new Runnable() {
-                @Override
-                @SuppressWarnings("unchecked")
-                public void run() {
-                    handle(l, msg);
-                }
-            });
-        }
 
         synchronized (listenersLock) {
+            listenerLocks.put(l, new Object());
             messageListeners.add(l);
+            listenerQueues.put(l, Collections.synchronizedList(new ArrayList<>()));
         }
 
+        for (InDebuggerMessage msg : list) {
+            handle(l, msg);
+        }
+
+        getPool().submit(new Runnable() {
+            @Override
+            @SuppressWarnings("unchecked")
+            public void run() {
+                synchronized (listenerLocks.get(l)) {
+                    while (true) {
+                        List<InDebuggerMessage> queue = listenerQueues.get(l);
+                        while (!queue.isEmpty()) {
+                            l.message(queue.remove(0));
+                        }
+                        try {
+                            listenerLocks.get(l).wait();
+                        } catch (InterruptedException ex) {
+                            //ignored
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public void removeMessageListener(DebugMessageListener l) {
         synchronized (listenersLock) {
+            listenerLocks.remove(l);
             messageListeners.remove(l);
         }
     }
@@ -156,7 +193,10 @@ public class DebuggerConnection extends Thread {
             if (!canHandle) {
                 return false;
             }
-            l.message(msg);
+            listenerQueues.get(l).add(msg);
+            synchronized (listenerLocks.get(l)) {
+                listenerLocks.get(l).notifyAll();
+            }
             return true;
         } catch (Exception ex) {
             Logger.getLogger(DebuggerConnection.class.getName()).log(Level.SEVERE, "handle error", ex);
@@ -286,13 +326,7 @@ public class DebuggerConnection extends Thread {
     private void fireListeners(InDebuggerMessage msg) {
         synchronized (listenersLock) {
             for (DebugMessageListener listener : messageListeners) {
-                getPool().submit(new Runnable() {
-                    @Override
-                    @SuppressWarnings("unchecked")
-                    public void run() {
-                        handle(listener, msg);
-                    }
-                });
+                handle(listener, msg);
             }
         }
     }
@@ -302,6 +336,7 @@ public class DebuggerConnection extends Thread {
         while (!isInterrupted()) {
             try {
                 InDebuggerMessage msg = readMessage();
+                Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "Received: {0}", msg);
                 if (msg instanceof InExit) {
                     synchronized (this) {
                         isClosed = true;
@@ -309,7 +344,6 @@ public class DebuggerConnection extends Thread {
                         break;
                     }
                 }
-                Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "Received: {0}", msg);
                 msg.exec();
                 fireListeners(msg);
 
@@ -318,6 +352,7 @@ public class DebuggerConnection extends Thread {
                     receivedLock.notifyAll();
                 }
             } catch (IOException ex) {
+                Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "received IOEXception: {0}", ex.getMessage());
                 //Logger.getLogger(DebuggerConnection.class.getName()).log(Level.SEVERE, "exited", ex);
                 synchronized (this) {
                     isClosed = true;
@@ -327,6 +362,7 @@ public class DebuggerConnection extends Thread {
                 break;
             }
         }
+        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "finished run");
     }
 
     protected InDebuggerMessage readMessage() throws IOException {

@@ -38,9 +38,9 @@ public class OutSetBreakpoints extends OutDebuggerMessage {
     public String toString() {
         List<String> parts = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
-            parts.add("file" + files.get(i)+ ":line" + lines.get(i));
+            parts.add("file" + files.get(i) + ":line" + lines.get(i));
         }
-        return super.toString() + " [" + String.join(",\r\n", parts) + "]" ; //+ "(bp.count=" + files.size() + ")";
+        return super.toString() + " [" + String.join(",\r\n", parts) + "]"; //+ "(bp.count=" + files.size() + ")";
     }
 
     public OutSetBreakpoints(DebuggerConnection c, int file, int line) {

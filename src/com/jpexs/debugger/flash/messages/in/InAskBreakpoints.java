@@ -12,7 +12,8 @@
  * Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library. */
+ * License along with this library.
+ */
 package com.jpexs.debugger.flash.messages.in;
 
 import com.jpexs.debugger.flash.DebuggerConnection;
@@ -24,9 +25,8 @@ import com.jpexs.debugger.flash.InDebuggerMessage;
  * @author JPEXS
  */
 public class InAskBreakpoints extends InDebuggerMessage {
-    
-    public static final int ID = 15;
 
+    public static final int ID = 15;
 
     public InAskBreakpoints(DebuggerConnection c, byte[] data) {
         super(c, ID, data);

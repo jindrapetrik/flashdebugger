@@ -47,7 +47,7 @@ public class DebuggerConnection extends Thread {
     private final InputStream is;
     private final OutputStream os;
     private final Socket s;
-    private boolean isClosed = false;
+    private boolean closed = false;
 
     private static final String DEBUG_MESSAGES = "$debug_messages";
     private static final String DEBUG_MESSAGE_SIZE = "$debug_message_size";
@@ -311,7 +311,7 @@ public class DebuggerConnection extends Thread {
                     }
                     boolean cls;
                     synchronized (this) {
-                        cls = isClosed;
+                        cls = closed;
                     }
                     if (cls) {
                         throw new IOException("Disconnected");
@@ -337,13 +337,6 @@ public class DebuggerConnection extends Thread {
             try {
                 InDebuggerMessage msg = readMessage();
                 Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "Received: {0}", msg);
-                if (msg instanceof InExit) {
-                    synchronized (this) {
-                        isClosed = true;
-                        disconnect();
-                        break;
-                    }
-                }
                 msg.exec();
                 fireListeners(msg);
 
@@ -351,11 +344,20 @@ public class DebuggerConnection extends Thread {
                     received.add(msg);
                     receivedLock.notifyAll();
                 }
+                
+                if (msg instanceof InExit) {
+                    Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "Received InExit, disconnecting...");
+                    synchronized (this) {
+                        closed = true;
+                        disconnect();
+                        break;
+                    }
+                }                
             } catch (IOException ex) {
                 Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "received IOEXception: {0}", ex.getMessage());
                 //Logger.getLogger(DebuggerConnection.class.getName()).log(Level.SEVERE, "exited", ex);
                 synchronized (this) {
-                    isClosed = true;
+                    closed = true;
                 }
                 received.clear();
                 disconnect();
@@ -363,6 +365,11 @@ public class DebuggerConnection extends Thread {
             }
         }
         Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "finished run");
+    }
+    
+    
+    public boolean isClosed() {
+        return closed;
     }
 
     protected InDebuggerMessage readMessage() throws IOException {

@@ -17,8 +17,6 @@
 package com.jpexs.debugger.flash;
 
 import com.jpexs.debugger.flash.messages.in.InExit;
-import com.jpexs.debugger.flash.messages.in.InProcessTag;
-import com.jpexs.debugger.flash.messages.out.OutProcessedTag;
 import com.jpexs.debugger.flash.messages.out.OutSetActiveIsolate;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -33,8 +31,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,7 +38,7 @@ import java.util.logging.Logger;
  *
  * @author JPEXS
  */
-public class DebuggerConnection extends Thread {
+public class DebuggerConnection implements Runnable {
 
     private final InputStream is;
     private final OutputStream os;
@@ -80,17 +76,8 @@ public class DebuggerConnection extends Thread {
 
     private Map<DebugMessageListener, List<InDebuggerMessage>> listenerQueues = Collections.synchronizedMap(new LinkedHashMap<>());
 
-    private Map<DebugMessageListener, Object> listenerLocks = Collections.synchronizedMap(new LinkedHashMap<>());
-
-    private static ExecutorService pool = null;
-
-    private static ExecutorService getPool() {
-        if (pool == null) {
-            pool = Executors.newCachedThreadPool();
-        }
-        return pool;
-    }
-
+    private Map<DebugMessageListener, Object> listenerLocks = Collections.synchronizedMap(new LinkedHashMap<>());   
+    
     public void disconnect() {
         if (is != null) {
             try {
@@ -112,10 +99,6 @@ public class DebuggerConnection extends Thread {
             } catch (IOException ex) {
                 //ignore
             }
-        }
-        if (pool != null) {
-            pool.shutdownNow();
-            pool = null;
         }
 
         synchronized (listenersLock) {
@@ -147,15 +130,19 @@ public class DebuggerConnection extends Thread {
             handle(l, msg);
         }
 
-        getPool().submit(new Runnable() {
+        Debugger.getPool().submit(new Runnable() {
             @Override
             @SuppressWarnings("unchecked")
             public void run() {
                 synchronized (listenerLocks.get(l)) {
                     while (true) {
                         List<InDebuggerMessage> queue = listenerQueues.get(l);
-                        while (!queue.isEmpty()) {
-                            l.message(queue.remove(0));
+                        while (!queue.isEmpty()) {                                        
+                            try {
+                                l.message(queue.remove(0));
+                            } catch (Throwable t) {
+                                Logger.getLogger(DebuggerConnection.class.getName()).log(Level.SEVERE, "session{" + id + "}: Error calling message handler", t);
+                            }
                         }
                         try {
                             listenerLocks.get(l).wait();
@@ -176,8 +163,13 @@ public class DebuggerConnection extends Thread {
     }
 
     final DebuggerCommands dc;
+    
+    private static int maxId = 0;
+    
+    private int id;
 
     public DebuggerConnection(Socket s) throws IOException {
+        id = ++maxId;
         this.s = s;
         this.is = new BufferedInputStream(s.getInputStream());
         this.os = new BufferedOutputStream(s.getOutputStream());
@@ -185,21 +177,25 @@ public class DebuggerConnection extends Thread {
         dc = new DebuggerCommands(this);
     }
 
+    public int getId() {
+        return id;
+    }    
+    
     @SuppressWarnings("unchecked")
     private boolean handle(DebugMessageListener<InDebuggerMessage> l, InDebuggerMessage msg) {
         try {
             Class actualType = (Class) ((ParameterizedType) l.getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
             boolean canHandle = (actualType.isAssignableFrom(msg.getClass()));
-            if (!canHandle) {
+            if (!canHandle) {                
                 return false;
-            }
+            }            
             listenerQueues.get(l).add(msg);
             synchronized (listenerLocks.get(l)) {
                 listenerLocks.get(l).notifyAll();
             }
             return true;
         } catch (Exception ex) {
-            Logger.getLogger(DebuggerConnection.class.getName()).log(Level.SEVERE, "handle error", ex);
+            Logger.getLogger(DebuggerConnection.class.getName()).log(Level.SEVERE, "session" + id + ": handle error", ex);
             return false;
         }
 
@@ -333,10 +329,10 @@ public class DebuggerConnection extends Thread {
 
     @Override
     public void run() {
-        while (!isInterrupted()) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
                 InDebuggerMessage msg = readMessage();
-                Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "Received: {0}", msg);
+                Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "session{0}: Received: {1}", new Object[]{id, msg});
                 msg.exec();
                 fireListeners(msg);
 
@@ -346,7 +342,7 @@ public class DebuggerConnection extends Thread {
                 }
                 
                 if (msg instanceof InExit) {
-                    Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "Received InExit, disconnecting...");
+                    Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "session{0}: Received InExit, disconnecting...", id);
                     synchronized (this) {
                         closed = true;
                         disconnect();
@@ -354,7 +350,7 @@ public class DebuggerConnection extends Thread {
                     }
                 }                
             } catch (IOException ex) {
-                Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "received IOEXception: {0}", ex.getMessage());
+                Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "session{0}: received IOEXception: {1}", new Object[]{id, ex.getMessage()});
                 //Logger.getLogger(DebuggerConnection.class.getName()).log(Level.SEVERE, "exited", ex);
                 synchronized (this) {
                     closed = true;
@@ -364,7 +360,7 @@ public class DebuggerConnection extends Thread {
                 break;
             }
         }
-        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "finished run");
+        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "session{0}: finished run", id);
     }
     
     
@@ -394,18 +390,18 @@ public class DebuggerConnection extends Thread {
      * @throws IOException
      */
     public synchronized void writeMessage(OutDebuggerMessage v) throws IOException {
-        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "Sending: {0}", v);
+        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "session{0}: Sending: {1}", new Object[]{id, v});
         if (v.type != OutSetActiveIsolate.ID) {
             int targetIsolate = v.targetIsolate;
             if (targetIsolate != activeIsolateId) {
                 activeIsolateId = targetIsolate;
-                Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "Isolate do not match, switching isolate");
+                Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINER, "session{0}: Isolate do not match, switching isolate", id);
                 writeMessage(new OutSetActiveIsolate(this, targetIsolate));
             }
         }
         byte[] data = v.getData();
 
-        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINEST, "Writing data");
+        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINEST, "session{0}: Writing data", id);
 
         writeDword(data.length);
 
@@ -415,7 +411,7 @@ public class DebuggerConnection extends Thread {
 
         os.flush();
 
-        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINEST, "Sent: {0}", v);
+        Logger.getLogger(DebuggerConnection.class.getName()).log(Level.FINEST, "session{0}: Sent: {1}", new Object[]{id, v});
     }
 
     /**
@@ -428,7 +424,7 @@ public class DebuggerConnection extends Thread {
      * @throws IOException
      */
     @SuppressWarnings("unchecked")
-    public <E extends InDebuggerMessage> E sendMessage(OutDebuggerMessage v, Class<E> cls) throws IOException {
+    public <E extends InDebuggerMessage> E sendMessage(OutDebuggerMessage v, Class<E> cls) throws IOException {       
         writeMessage(v);
         return getMessage(cls, 0);
     }

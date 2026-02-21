@@ -31,6 +31,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,7 +48,7 @@ public class Debugger {
     public static final int DEBUG_PORT = 7935;
     private ServerSocket ssock;
     private boolean stopped = true;
-    private Thread thread;
+    private Runnable mainRunnable;
 
     private List<DebugConnectionListener> listeners = new ArrayList<>();
 
@@ -56,15 +60,31 @@ public class Debugger {
         listeners.remove(listener);
     }
 
-    private void initThread() {
-        thread = new Thread() {
+    private static ExecutorService pool = null;
+
+    public static synchronized ExecutorService getPool() {
+        if (pool == null) {
+            AtomicInteger counter = new AtomicInteger(1);
+
+            ThreadFactory namedThreadFactory = runnable -> {
+                Thread t = new Thread(runnable);
+                t.setName("flash-debugger-thread-" + counter.getAndIncrement());
+                return t;
+            };
+            pool = Executors.newCachedThreadPool(namedThreadFactory);
+        }
+        return pool;
+    }
+    
+    private void initMainRunnable() {
+        mainRunnable = new Runnable() {
             @Override
             public void run() {
                 try {
                     synchronized (Debugger.this) {
                         ssock = new ServerSocket(DEBUG_PORT, 0, InetAddress.getByName("localhost"));
                     }
-                    while (!isStopped() && !this.isInterrupted()) {
+                    while (!isStopped() && !Thread.currentThread().isInterrupted()) {
                         DebuggerConnection dc;
 
                         Logger.getLogger(Debugger.class.getName()).log(Level.FINE, "Waiting for a client...");
@@ -72,15 +92,21 @@ public class Debugger {
                         Logger.getLogger(Debugger.class.getName()).log(Level.FINE, "New client connected");
                         s.setTcpNoDelay(true);
                         dc = new DebuggerConnection(s);
+                        Logger.getLogger(Debugger.class.getName()).log(Level.FINE, "New client id is {0}", dc.getId());                        
                         connections.add(dc);
-                        dc.start();
-                        for (DebugConnectionListener listener : listeners) {
-                            listener.connected(dc);
-                        }
+                        getPool().submit(dc);
+                        getPool().submit(new Runnable() {
+                            @Override
+                            public void run() {
+                                for (DebugConnectionListener listener : listeners) {
+                                    listener.connected(dc);
+                                }
+                            }                            
+                        });                        
                     }
                 } catch (IOException ex) {
                     if (!isStopped()) {
-                        Logger.getLogger(Debugger.class.getName()).log(Level.FINE, "Cannot listen: " + ex.getMessage());
+                        Logger.getLogger(Debugger.class.getName()).log(Level.FINE, "Cannot listen: {0}", ex.getMessage());
 
                         stopDebugger();
                         for (DebugConnectionListener listener : listeners) {
@@ -88,7 +114,6 @@ public class Debugger {
                         }
 
                     }
-                    return;
                 }
             }
         };
@@ -104,9 +129,9 @@ public class Debugger {
 
         }
         Logger.getLogger(Debugger.class.getName()).log(Level.FINE, "Starting server");
-        initThread();
+        initMainRunnable();
 
-        thread.start();
+        getPool().submit(mainRunnable);
 
         synchronized (this) {
             stopped = false;
@@ -134,7 +159,13 @@ public class Debugger {
             }
             ssock = null;
         }
-        thread = null;
+        
+        if (stopNow && pool != null) {
+            pool.shutdownNow();
+            pool = null;
+        }
+        
+        mainRunnable = null;                
     }
 
     public static void main(String[] args) throws IOException {

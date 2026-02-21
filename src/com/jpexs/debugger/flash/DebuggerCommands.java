@@ -25,9 +25,7 @@ import com.jpexs.debugger.flash.messages.in.InGetActions;
 import com.jpexs.debugger.flash.messages.in.InGetFncNames;
 import com.jpexs.debugger.flash.messages.in.InGetVariable;
 import com.jpexs.debugger.flash.messages.in.InOption;
-import com.jpexs.debugger.flash.messages.in.InRemoveBreakpoint;
 import com.jpexs.debugger.flash.messages.in.InSetBreakpoint;
-import com.jpexs.debugger.flash.messages.in.InSetProperty;
 import com.jpexs.debugger.flash.messages.in.InSetVariable;
 import com.jpexs.debugger.flash.messages.in.InSetVariable2;
 import com.jpexs.debugger.flash.messages.in.InSquelch;
@@ -49,7 +47,6 @@ import com.jpexs.debugger.flash.messages.out.OutRemoveWatch2;
 import com.jpexs.debugger.flash.messages.out.OutSetActiveIsolate;
 import com.jpexs.debugger.flash.messages.out.OutSetBreakpoints;
 import com.jpexs.debugger.flash.messages.out.OutSetOption;
-import com.jpexs.debugger.flash.messages.out.OutSetProperty;
 import com.jpexs.debugger.flash.messages.out.OutSetSquelch;
 import com.jpexs.debugger.flash.messages.out.OutSetVariable;
 import com.jpexs.debugger.flash.messages.out.OutStepContinue;
@@ -60,10 +57,7 @@ import com.jpexs.debugger.flash.messages.out.OutStopDebug;
 import com.jpexs.debugger.flash.messages.out.OutSwfInfo;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -159,6 +153,10 @@ public class DebuggerCommands {
     public InConstantPool getConstantPool(int poolId) throws IOException {
         return connection.sendMessage(new OutConstantPool(connection, poolId), InConstantPool.class);
     }
+    
+    public InConstantPool getConstantPoolWithTimeout(int poolId, long timeout) throws IOException {
+        return connection.sendMessage(new OutConstantPool(connection, poolId), InConstantPool.class, timeout);
+    }
 
     public InFrame getFrame(int depth) throws IOException {
         if (!connection.squelchEnabled) {
@@ -167,6 +165,14 @@ public class DebuggerCommands {
         return connection.sendMessage(new OutGetFrame(connection, depth), InFrame.class);
     }
 
+    public InFrame getFrameWithTimeout(int depth, long timeout) throws IOException {
+        if (!connection.squelchEnabled) {
+            return null;
+        }
+        return connection.sendMessage(new OutGetFrame(connection, depth), InFrame.class, timeout);
+    }
+
+    
     public InCallFunction callFunction(boolean isConstructor, String funcName, String thisType, String thisValue, List<String> argTypes, List<String> argValues) throws IOException {
         return connection.sendMessage(new OutCallFunction(connection, isConstructor, funcName, thisType, thisValue, argTypes, argValues), InCallFunction.class);
     }
@@ -181,6 +187,19 @@ public class DebuggerCommands {
         }
         return connection.sendMessage(
                 fireGetter ? new OutGetVariableWhichInvokesGetter(connection, id, name, flags) : new OutGetVariable(connection, id, name, flags), InGetVariable.class);
+
+    }
+    
+    public InGetVariable getVariableWithTimeout(long id, String name, boolean fireGetter, boolean getChildrenToo, long timeout) throws IOException {
+        int flags = GetVariableFlag.DONT_GET_FUNCTIONS;
+        if (fireGetter) {
+            flags |= GetVariableFlag.INVOKE_GETTER;
+        }
+        if (getChildrenToo) {
+            flags |= GetVariableFlag.ALSO_GET_CHILDREN | GetVariableFlag.GET_CLASS_HIERARCHY;
+        }
+        return connection.sendMessage(
+                fireGetter ? new OutGetVariableWhichInvokesGetter(connection, id, name, flags) : new OutGetVariable(connection, id, name, flags), InGetVariable.class, timeout);
 
     }
 

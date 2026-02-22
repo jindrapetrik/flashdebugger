@@ -88,8 +88,9 @@ public abstract class OutDebuggerMessage extends DebuggerMessage {
     }
 
     public void writeLong(OutputStream os, long val) throws IOException {
-        writeDWord(os, val & 0xffffffff);
-        writeDWord(os, (val >> 32) & 0xffffffff);
+        for (int i=0; i < 8; i++) {
+            writeByte(os, (int) ((val >> (8 * i)) & 0xFF));
+        }
     }
 
     public void writeByte(OutputStream os, int val) throws IOException {

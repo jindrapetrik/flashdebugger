@@ -250,13 +250,17 @@ public class InDebuggerMessage extends DebuggerMessage {
         int b2 = is.read();
         int b3 = is.read();
         int b4 = is.read();
-        return (b4 << 24) + (b3 << 16) + (b2 << 8) + b1;
+        return (b4 << 24) | (b3 << 16) | (b2 << 8) | b1;
     }
 
     public long readLong() {
-        long dw1 = readDWord();
-        long dw2 = readDWord();
-        return (dw2 << 32) + dw1;
+        long value = 0;
+        for (int i=0; i < 8; i++) {
+            long val = is.read();
+            long shifted = val << (8 * i);
+            value |= shifted;
+        }
+        return value;
     }
 
     public int readByte() {

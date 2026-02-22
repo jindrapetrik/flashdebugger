@@ -276,27 +276,31 @@ public class DebuggerCommands {
     }
 
     public boolean playerIsWideLine() throws IOException {
-        return getOption(InOption.OPTION_WIDE_LINE_PLAYER, "off").equals("on");
+        return getOption(InOption.OPTION_WIDE_LINE_PLAYER, "false").equals("true");
     }
 
     public boolean playerCanCallFunctions() throws IOException {
-        return getOption(InOption.OPTION_CAN_CALL_FUNCTIONS, "off").equals("on");
+        return getOption(InOption.OPTION_CAN_CALL_FUNCTIONS, "false").equals("true");
+    }
+
+    public void debuggerSetConcurrency() throws IOException {
+        setOption(OutSetOption.OPTION_CONCURRENT_DEBUGGER, "on");
     }
 
     public boolean playerConcurrency() throws IOException {
-        return getOption(InOption.OPTION_CONCURRENT_PLAYER, "off").equals("on");
+        return getOption(InOption.OPTION_CONCURRENT_PLAYER, "false").equals("true");
     }
-
+       
     public boolean playerCanBreakOnAllExceptions() throws IOException {
-        return getOption(InOption.OPTION_CAN_BREAK_ON_ALL_EXCEPTIONS, "off").equals("on");
+        return getOption(InOption.OPTION_CAN_BREAK_ON_ALL_EXCEPTIONS, "false").equals("true");
     }
 
     public boolean playerCanTerminate() throws IOException {
-        return getOption(InOption.OPTION_CAN_TERMINATE, "off").equals("on");
+        return getOption(InOption.OPTION_CAN_TERMINATE, "false").equals("true");
     }
 
     public boolean playerSupportsWatchpoints() throws IOException {
-        return getOption(InOption.OPTION_CAN_SET_WATCHPOINTS, "off").equals("on");
+        return getOption(InOption.OPTION_CAN_SET_WATCHPOINTS, "false").equals("true");
     }
 
     public void stopWarning() throws IOException {

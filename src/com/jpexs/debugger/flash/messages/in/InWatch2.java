@@ -32,6 +32,7 @@ public class InWatch2 extends InDebuggerMessage {
     public int oldFlags;
     public int oldTag;
     public int flags;
+    public int tag;
     public long objId;
     public String name;
 
@@ -46,10 +47,8 @@ public class InWatch2 extends InDebuggerMessage {
         oldFlags = readWord();
         oldTag = readWord();
         flags = readWord();
-        objId = readWord();
-        if (c.isAS3) {
-            objId = readDWord();
-        }
+        tag = readWord();
+        objId = readPtr(c);
         name = readString();
     }
 
